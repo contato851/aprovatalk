@@ -225,7 +225,7 @@ function NewPostDialog({ clients }: { clients: any[] }) {
     if (!clientId) return toast.error("Selecione um cliente.");
     setOpen(false);
     navigate({
-      to: "/clients/$clientId/new",
+      to: "/clients/$clientId",
       params: { clientId },
     });
   }
