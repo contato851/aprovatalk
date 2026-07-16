@@ -173,8 +173,20 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function TypeLabel({ type }: { type: string }) {
-  const label = type === "static" ? "Estático" : type === "carousel" ? "Carrossel" : "Vídeo";
-  return <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>;
+  const label = type === "static" ? "Estático" : type === "carousel" ? "Carrossel" : "Reel";
+  return (
+    <span
+      className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+        type === "static"
+          ? "bg-brand-orange text-white"
+          : type === "carousel"
+            ? "bg-brand-purple text-white"
+            : "bg-brand-chartreuse text-emerald-950"
+      }`}
+    >
+      {label}
+    </span>
+  );
 }
 
 function ListView({ posts }: { posts: Post[] }) {
