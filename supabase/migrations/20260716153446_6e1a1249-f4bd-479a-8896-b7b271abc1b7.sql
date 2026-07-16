@@ -1,0 +1,1 @@
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS midia_arquivada boolean NOT NULL DEFAULT false;

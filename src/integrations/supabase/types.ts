@@ -90,6 +90,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           id: string
+          midia_arquivada: boolean
           responded_at: string | null
           scheduled_at: string
           status: Database["public"]["Enums"]["post_status"]
@@ -103,6 +104,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           id?: string
+          midia_arquivada?: boolean
           responded_at?: string | null
           scheduled_at: string
           status?: Database["public"]["Enums"]["post_status"]
@@ -116,6 +118,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           id?: string
+          midia_arquivada?: boolean
           responded_at?: string | null
           scheduled_at?: string
           status?: Database["public"]["Enums"]["post_status"]
