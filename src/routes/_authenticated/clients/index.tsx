@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -35,14 +35,17 @@ function ClientsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold">Clientes</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Gerencie sua carteira e envie posts para aprovação.
           </p>
         </div>
-        <NewClientDialog />
+        <div className="flex flex-wrap gap-2">
+          <NewPostDialog clients={q.data ?? []} />
+          <NewClientDialog />
+        </div>
       </div>
 
       {q.isLoading ? (
@@ -210,3 +213,63 @@ function NewClientDialog() {
     </Dialog>
   );
 }
+
+function NewPostDialog({ clients }: { clients: any[] }) {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [clientId, setClientId] = useState("");
+
+  const active = clients.filter((c) => c.status === "active");
+
+  function go() {
+    if (!clientId) return toast.error("Selecione um cliente.");
+    setOpen(false);
+    navigate({
+      to: "/clients/$clientId",
+      params: { clientId },
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-1.5">
+          <Plus className="h-4 w-4" /> Novo post
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Novo post</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Cliente</Label>
+            <select
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Selecione um cliente…</option>
+              {active.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} (@{c.instagram_handle})
+                </option>
+              ))}
+            </select>
+            {active.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Nenhum cliente ativo. Cadastre um cliente primeiro.
+              </p>
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={go} disabled={!clientId}>
+            Continuar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
