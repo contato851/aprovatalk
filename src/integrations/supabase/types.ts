@@ -14,16 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          access_token: string
+          avatar_url: string | null
+          created_at: string
+          id: string
+          instagram_handle: string
+          name: string
+          status: Database["public"]["Enums"]["client_status"]
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          instagram_handle: string
+          name: string
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          instagram_handle?: string
+          name?: string
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      post_media: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          position: number
+          post_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          position?: number
+          post_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          position?: number
+          post_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_media_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          caption: string
+          client_comment: string | null
+          client_id: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          responded_at: string | null
+          scheduled_at: string
+          status: Database["public"]["Enums"]["post_status"]
+          type: Database["public"]["Enums"]["post_type"]
+          updated_at: string
+        }
+        Insert: {
+          caption?: string
+          client_comment?: string | null
+          client_id: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          responded_at?: string | null
+          scheduled_at: string
+          status?: Database["public"]["Enums"]["post_status"]
+          type: Database["public"]["Enums"]["post_type"]
+          updated_at?: string
+        }
+        Update: {
+          caption?: string
+          client_comment?: string | null
+          client_id?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          responded_at?: string | null
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["post_status"]
+          type?: Database["public"]["Enums"]["post_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
+      client_status: "active" | "inactive"
+      post_status: "pending" | "approved" | "rejected"
+      post_type: "static" | "carousel" | "video"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +297,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+      client_status: ["active", "inactive"],
+      post_status: ["pending", "approved", "rejected"],
+      post_type: ["static", "carousel", "video"],
+    },
   },
 } as const
