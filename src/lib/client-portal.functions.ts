@@ -14,6 +14,39 @@ async function signPath(admin: any, bucket: string, path: string | null) {
   return data?.signedUrl ?? null;
 }
 
+async function notifyWhatsApp(message: string) {
+  const phone = process.env.CALLMEBOT_PHONE;
+  const apikey = process.env.CALLMEBOT_APIKEY;
+  if (!phone || !apikey) {
+    console.warn("[whatsapp] CALLMEBOT_PHONE/CALLMEBOT_APIKEY não configurados");
+    return;
+  }
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(apikey)}`;
+  try {
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) {
+      console.error("[whatsapp] falha", res.status, await res.text().catch(() => ""));
+    }
+  } catch (err) {
+    console.error("[whatsapp] erro", err);
+  }
+}
+
+function formatScheduledDate(iso: string) {
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Sao_Paulo",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
 /**
  * Retorna cliente + posts (todos) validando pelo access_token do link.
  */
@@ -95,6 +128,9 @@ export const approvePostByToken = createServerFn({ method: "POST" })
       .select("scheduled_at")
       .single();
     if (error) throw error;
+    await notifyWhatsApp(
+      `✅ ${client.name} aprovou o post de ${formatScheduledDate(post.scheduled_at)}`,
+    );
     return { scheduled_at: post.scheduled_at };
   });
 
@@ -111,7 +147,7 @@ export const rejectPostByToken = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const client = await getClientByToken(supabaseAdmin, data.token);
-    const { error } = await supabaseAdmin
+    const { data: post, error } = await supabaseAdmin
       .from("posts")
       .update({
         status: "rejected",
@@ -119,15 +155,20 @@ export const rejectPostByToken = createServerFn({ method: "POST" })
         responded_at: new Date().toISOString(),
       })
       .eq("id", data.postId)
-      .eq("client_id", client.id);
+      .eq("client_id", client.id)
+      .select("scheduled_at")
+      .single();
     if (error) throw error;
+    await notifyWhatsApp(
+      `❌ ${client.name} reprovou o post de ${formatScheduledDate(post.scheduled_at)}. Comentário: ${data.comment}`,
+    );
     return { ok: true };
   });
 
 async function getClientByToken(admin: any, token: string) {
   const { data, error } = await admin
     .from("clients")
-    .select("id, status")
+    .select("id, name, status")
     .eq("access_token", token)
     .maybeSingle();
   if (error) throw error;
