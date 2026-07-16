@@ -36,21 +36,12 @@ function ClientDetail() {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-4">
-        {c.avatar_signed_url ? (
-          <img
-            src={c.avatar_signed_url}
-            alt=""
-            className="h-16 w-16 rounded-full object-cover"
-          />
-        ) : (
-          <div className="h-16 w-16 rounded-full bg-muted" />
-        )}
+        <AvatarUpload client={c} />
         <div>
           <h1 className="font-display text-3xl font-bold">{c.name}</h1>
           <p className="text-sm text-muted-foreground">@{c.instagram_handle}</p>
         </div>
         <div className="ml-auto flex flex-wrap gap-2">
-          <EditClientDialog client={c} />
           <button
             onClick={() => {
               const link = `${typeof window !== "undefined" ? window.location.origin : ""}/c/${c.access_token}`;
