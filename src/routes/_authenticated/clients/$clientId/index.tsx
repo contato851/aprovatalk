@@ -46,15 +46,6 @@ function ClientDetail() {
           <p className="text-sm text-muted-foreground">@{c.instagram_handle}</p>
         </div>
         <div className="ml-auto flex gap-2">
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(link);
-              toast.success("Link copiado!");
-            }}
-            className="inline-flex items-center gap-1 rounded-full border border-border px-4 py-2 text-sm hover:bg-accent"
-          >
-            <Copy className="h-3.5 w-3.5" /> Copiar link do cliente
-          </button>
           <Link
             to="/clients/$clientId/new"
             params={{ clientId }}
@@ -63,6 +54,7 @@ function ClientDetail() {
             <Plus className="h-4 w-4" /> Novo post
           </Link>
         </div>
+
       </div>
 
       <div>
