@@ -191,6 +191,9 @@ function AvatarUpload({ client }: { client: any }) {
       <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-foreground/40 text-[10px] font-medium text-background opacity-0 transition group-hover:opacity-100">
         Trocar
       </span>
+      <span className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow-sm">
+        <Camera className="h-3 w-3" />
+      </span>
       <input
         ref={inputRef}
         type="file"
