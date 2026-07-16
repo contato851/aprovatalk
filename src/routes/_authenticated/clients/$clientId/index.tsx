@@ -4,8 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { getClient, listPosts } from "@/lib/admin.functions";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Plus } from "lucide-react";
-import { toast } from "sonner";
+import { Plus } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/clients/$clientId/")({
   component: ClientDetail,
@@ -27,7 +27,7 @@ function ClientDetail() {
 
   if (!clientQ.data) return <p className="text-sm text-muted-foreground">Carregando…</p>;
   const c = clientQ.data as any;
-  const link = `${typeof window !== "undefined" ? window.location.origin : ""}/c/${c.access_token}`;
+
 
   return (
     <div className="space-y-8">
@@ -46,15 +46,6 @@ function ClientDetail() {
           <p className="text-sm text-muted-foreground">@{c.instagram_handle}</p>
         </div>
         <div className="ml-auto flex gap-2">
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(link);
-              toast.success("Link copiado!");
-            }}
-            className="inline-flex items-center gap-1 rounded-full border border-border px-4 py-2 text-sm hover:bg-accent"
-          >
-            <Copy className="h-3.5 w-3.5" /> Copiar link do cliente
-          </button>
           <Link
             to="/clients/$clientId/new"
             params={{ clientId }}
@@ -63,6 +54,7 @@ function ClientDetail() {
             <Plus className="h-4 w-4" /> Novo post
           </Link>
         </div>
+
       </div>
 
       <div>
@@ -86,12 +78,23 @@ function ClientDetail() {
                   params={{ postId: p.id }}
                   className="group overflow-hidden rounded-xl border border-border bg-card transition hover:shadow-lg"
                 >
-                  <div className={`relative ${p.type === "video" ? "aspect-square" : "aspect-[4/5]"} bg-muted`}>
+                  <div className="relative aspect-[3/4] bg-muted">
                     {thumb && (
                       <img src={thumb} alt="" className="h-full w-full object-cover" />
                     )}
                     <span
-                      className={`absolute left-2 top-2 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                      className={`absolute left-2 top-2 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+                        p.type === "static"
+                          ? "bg-brand-orange text-white"
+                          : p.type === "carousel"
+                            ? "bg-brand-purple text-white"
+                            : "bg-brand-chartreuse text-emerald-950"
+                      }`}
+                    >
+                      {p.type === "static" ? "Estático" : p.type === "carousel" ? "Carrossel" : "Reel"}
+                    </span>
+                    <span
+                      className={`absolute right-2 top-2 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
                         p.status === "approved"
                           ? "border-brand-chartreuse/30 bg-brand-chartreuse-soft text-emerald-700"
                           : p.status === "rejected"
@@ -108,7 +111,7 @@ function ClientDetail() {
                   </div>
                   <div className="p-3">
                     <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                      {p.type === "static" ? "Estático" : p.type === "carousel" ? "Carrossel" : "Vídeo"} · {format(parseISO(p.scheduled_at), "dd/MM 'às' HH'h'", { locale: ptBR })}
+                      {format(parseISO(p.scheduled_at), "dd/MM 'às' HH'h'", { locale: ptBR })}
                     </div>
                     <p className="mt-1 line-clamp-2 text-sm">{p.caption || "—"}</p>
                     {p.status === "rejected" && p.client_comment && (
