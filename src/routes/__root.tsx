@@ -95,6 +95,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Talk — Aprovação de Posts" },
+      { name: "twitter:description", content: "Plataforma da Talk para aprovar posts de redes sociais com clientes." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/537af99d-04e3-4c9d-bb36-2ba981b91434/id-preview-48023bec--88145799-9803-4a17-9c69-fe0fddd1ed14.lovable.app-1784220466996.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/537af99d-04e3-4c9d-bb36-2ba981b91434/id-preview-48023bec--88145799-9803-4a17-9c69-fe0fddd1ed14.lovable.app-1784220466996.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
