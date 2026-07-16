@@ -309,7 +309,7 @@ function MediaViewer({ post }: { post: any }) {
   if (post.type === "video") {
     const v = items[0];
     return (
-      <div className="relative aspect-square bg-black">
+      <div className="relative aspect-[9/16] bg-black">
         {v?.signed_url && (
           <video
             src={v.signed_url}
