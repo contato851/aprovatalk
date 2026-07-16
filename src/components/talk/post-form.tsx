@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createPost, updatePost } from "@/lib/admin.functions";
 import { uploadToBucket } from "@/lib/upload";
+import { resizeImageToExact } from "@/lib/image-resize";
 
 type PostType = "static" | "carousel" | "video";
 
@@ -128,7 +129,11 @@ export function PostForm(props: Props) {
       const uploaded = await Promise.all(
         media.map(async (m) => {
           if (m.path) return { path: m.path, kind: m.kind };
-          const p = await uploadToBucket("post-media", m.file!);
+          let fileToUpload = m.file!;
+          if (m.kind === "image" && (type === "static" || type === "carousel")) {
+            fileToUpload = await resizeImageToExact(fileToUpload, 1080, 1440);
+          }
+          const p = await uploadToBucket("post-media", fileToUpload);
           return { path: p, kind: m.kind };
         }),
       );
