@@ -261,7 +261,8 @@ export function PostForm(props: Props) {
         )}
       </div>
 
-      {/* Cover */}
+      {/* Cover - apenas para vídeo */}
+      {type === "video" && (
       <div>
         <Label>
           Capa {type === "video" ? "(obrigatória)" : "(opcional)"}
