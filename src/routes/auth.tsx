@@ -21,7 +21,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) navigate({ to: "/clients", replace: true });
     });
   }, [navigate]);
 
@@ -36,12 +36,12 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Bem-vinda(o) de volta!");
-        navigate({ to: "/dashboard", replace: true });
+        navigate({ to: "/clients", replace: true });
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+          options: { emailRedirectTo: `${window.location.origin}/clients` },
         });
         if (error) throw error;
         toast.success("Conta criada! Você já pode entrar.");

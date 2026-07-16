@@ -38,7 +38,7 @@ function AuthenticatedLayout() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
-          <Link to="/dashboard" className="flex items-center">
+          <Link to="/clients" className="flex items-center">
             <img
               src={talkLogoAsset.url}
               alt="Talk"
