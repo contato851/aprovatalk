@@ -60,9 +60,12 @@ function AuthPage() {
       <TalkStar className="pointer-events-none absolute -bottom-32 -right-24 h-96 w-96 text-brand-orange-soft" />
 
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-xl">
-        <Link to="/" className="mb-6 inline-flex items-center gap-2">
-          <TalkStar className="h-5 w-5 text-brand-orange" />
-          <span className="font-display text-lg font-semibold">Talk</span>
+        <Link to="/" className="mb-6 inline-block">
+          <img
+            src={talkLogoAsset.url}
+            alt="Talk"
+            className="h-8 w-auto object-contain"
+          />
         </Link>
         <h1 className="font-display text-2xl font-bold">
           {mode === "signin" ? "Acesso da equipe" : "Criar conta Talk"}
