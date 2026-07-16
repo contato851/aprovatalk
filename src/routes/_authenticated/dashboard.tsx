@@ -252,7 +252,7 @@ function PostCard({ post }: { post: Post }) {
       params={{ postId: post.id }}
       className="group overflow-hidden rounded-xl border border-border bg-card transition hover:shadow-lg"
     >
-      <div className="relative aspect-square bg-muted">
+      <div className="relative aspect-[3/4] bg-muted">
         {thumb ? (
           <img src={thumb} alt="" className="h-full w-full object-cover" />
         ) : (
