@@ -340,7 +340,7 @@ function MediaViewer({ post }: { post: any }) {
         <div className="flex">
           {items.map((m, i) => (
             <div key={i} className="min-w-0 flex-[0_0_100%]">
-              <div className="aspect-square bg-muted">
+              <div className="aspect-[4/5] bg-muted">
                 {m.signed_url && (
                   <img
                     src={m.signed_url}
