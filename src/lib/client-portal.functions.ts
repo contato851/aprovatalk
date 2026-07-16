@@ -147,7 +147,7 @@ export const rejectPostByToken = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const client = await getClientByToken(supabaseAdmin, data.token);
-    const { error } = await supabaseAdmin
+    const { data: post, error } = await supabaseAdmin
       .from("posts")
       .update({
         status: "rejected",
@@ -155,15 +155,20 @@ export const rejectPostByToken = createServerFn({ method: "POST" })
         responded_at: new Date().toISOString(),
       })
       .eq("id", data.postId)
-      .eq("client_id", client.id);
+      .eq("client_id", client.id)
+      .select("scheduled_at")
+      .single();
     if (error) throw error;
+    await notifyWhatsApp(
+      `❌ ${client.name} reprovou o post de ${formatScheduledDate(post.scheduled_at)}. Comentário: ${data.comment}`,
+    );
     return { ok: true };
   });
 
 async function getClientByToken(admin: any, token: string) {
   const { data, error } = await admin
     .from("clients")
-    .select("id, status")
+    .select("id, name, status")
     .eq("access_token", token)
     .maybeSingle();
   if (error) throw error;
