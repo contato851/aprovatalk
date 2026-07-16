@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -35,14 +35,17 @@ function ClientsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold">Clientes</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Gerencie sua carteira e envie posts para aprovação.
           </p>
         </div>
-        <NewClientDialog />
+        <div className="flex flex-wrap gap-2">
+          <NewPostDialog clients={q.data ?? []} />
+          <NewClientDialog />
+        </div>
       </div>
 
       {q.isLoading ? (
