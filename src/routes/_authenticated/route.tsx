@@ -47,18 +47,18 @@ function AuthenticatedLayout() {
           </Link>
           <nav className="flex items-center gap-3 md:gap-6">
             <Link
-              to="/dashboard"
-              className="text-xs font-medium text-muted-foreground transition hover:text-foreground data-[status=active]:text-foreground md:text-sm"
-              activeProps={{ className: "text-foreground" }}
-            >
-              Dashboard
-            </Link>
-            <Link
               to="/clients"
               className="text-xs font-medium text-muted-foreground transition hover:text-foreground data-[status=active]:text-foreground md:text-sm"
               activeProps={{ className: "text-foreground" }}
             >
               Clientes
+            </Link>
+            <Link
+              to="/dashboard"
+              className="text-xs font-medium text-muted-foreground transition hover:text-foreground data-[status=active]:text-foreground md:text-sm"
+              activeProps={{ className: "text-foreground" }}
+            >
+              Dashboard
             </Link>
           </nav>
           <div className="flex items-center gap-3">
