@@ -145,115 +145,62 @@ function ClientDetail() {
   );
 }
 
-function EditClientDialog({ client }: { client: any }) {
+function AvatarUpload({ client }: { client: any }) {
   const qc = useQueryClient();
   const updateFn = useServerFn(updateClient);
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState(client.name);
-  const [handle, setHandle] = useState(client.instagram_handle);
-  const [avatar, setAvatar] = useState<File | null>(null);
-  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
-  function reset() {
-    setName(client.name);
-    setHandle(client.instagram_handle);
-    setAvatar(null);
-  }
-
-  async function save() {
-    if (!name.trim() || !handle.trim()) {
-      return toast.error("Preencha nome e @.");
-    }
-    setSaving(true);
+  async function handleFile(file: File) {
+    setUploading(true);
     try {
-      let avatar_path: string | undefined;
-      if (avatar) avatar_path = await uploadToBucket("avatars", avatar);
+      const avatar_path = await uploadToBucket("avatars", file);
       await updateFn({
         data: {
           id: client.id,
-          name: name.trim(),
-          instagram_handle: handle.trim(),
-          ...(avatar_path !== undefined ? { avatar_path } : {}),
+          avatar_path,
         },
       });
-      toast.success("Cliente atualizado!");
+      toast.success("Foto atualizada!");
       qc.invalidateQueries({ queryKey: ["client", client.id] });
       qc.invalidateQueries({ queryKey: ["clients"] });
-      setOpen(false);
-      setAvatar(null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro");
     } finally {
-      setSaving(false);
+      setUploading(false);
     }
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (!o) reset();
-      }}
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      disabled={uploading}
+      className="group relative h-16 w-16 rounded-full disabled:opacity-60"
+      title="Trocar foto"
     >
-      <button
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent"
-      >
-        <Pencil className="h-4 w-4" /> Editar cliente
-      </button>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Editar cliente</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            {avatar ? (
-              <img
-                src={URL.createObjectURL(avatar)}
-                alt=""
-                className="h-16 w-16 rounded-full object-cover"
-              />
-            ) : client.avatar_signed_url ? (
-              <img
-                src={client.avatar_signed_url}
-                alt=""
-                className="h-16 w-16 rounded-full object-cover"
-              />
-            ) : (
-              <div className="h-16 w-16 rounded-full bg-muted" />
-            )}
-            <div className="flex-1 space-y-2">
-              <Label>Foto</Label>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setAvatar(e.target.files?.[0] ?? null)}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>@ do Instagram</Label>
-            <Input
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              placeholder="talk.consultoria"
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-            Cancelar
-          </Button>
-          <Button onClick={save} disabled={saving}>
-            {saving ? "Salvando…" : "Salvar alterações"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      {client.avatar_signed_url ? (
+        <img
+          src={client.avatar_signed_url}
+          alt=""
+          className="h-16 w-16 rounded-full object-cover group-hover:opacity-70"
+        />
+      ) : (
+        <div className="h-16 w-16 rounded-full bg-muted group-hover:bg-muted/70" />
+      )}
+      <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100">
+        Trocar
+      </span>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleFile(file);
+        }}
+      />
+    </button>
   );
 }
