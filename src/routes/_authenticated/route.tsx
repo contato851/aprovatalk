@@ -37,25 +37,25 @@ function AuthenticatedLayout() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 md:px-6 md:py-4">
           <Link to="/dashboard" className="flex items-center">
             <img
               src={talkLogoAsset.url}
               alt="Talk"
-              className="h-8 w-auto"
+              className="h-7 w-auto md:h-8"
             />
           </Link>
-          <nav className="hidden gap-6 md:flex">
+          <nav className="flex items-center gap-3 md:gap-6">
             <Link
               to="/dashboard"
-              className="text-sm font-medium text-muted-foreground transition hover:text-foreground data-[status=active]:text-foreground"
+              className="text-xs font-medium text-muted-foreground transition hover:text-foreground data-[status=active]:text-foreground md:text-sm"
               activeProps={{ className: "text-foreground" }}
             >
               Dashboard
             </Link>
             <Link
               to="/clients"
-              className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+              className="text-xs font-medium text-muted-foreground transition hover:text-foreground data-[status=active]:text-foreground md:text-sm"
               activeProps={{ className: "text-foreground" }}
             >
               Clientes
@@ -67,15 +67,15 @@ function AuthenticatedLayout() {
             </span>
             <button
               onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground md:px-3"
             >
               <LogOut className="h-3.5 w-3.5" />
-              Sair
+              <span className="hidden sm:inline">Sair</span>
             </button>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 md:px-6 md:py-8">
         <Outlet />
       </main>
     </div>
