@@ -79,8 +79,16 @@ function ClientDetail() {
                   className="group overflow-hidden rounded-xl border border-border bg-card transition hover:shadow-lg"
                 >
                   <div className="relative aspect-[3/4] bg-muted">
-                    {thumb && (
-                      <img src={thumb} alt="" className="h-full w-full object-cover" />
+                    {p.midia_arquivada ? (
+                      <div className="flex h-full w-full items-center justify-center bg-muted/60">
+                        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                          Mídia arquivada
+                        </p>
+                      </div>
+                    ) : (
+                      thumb && (
+                        <img src={thumb} alt="" className="h-full w-full object-cover" />
+                      )
                     )}
                     <span
                       className={`absolute left-2 top-2 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${

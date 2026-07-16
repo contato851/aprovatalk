@@ -206,11 +206,12 @@ function FeedCard({
       </div>
 
       {/* Media */}
-      <MediaViewer post={post} />
+      {post.midia_arquivada ? <ArchivedPlaceholder /> : <MediaViewer post={post} />}
+
 
       {/* Sections: cover + caption */}
       <div className="space-y-4 border-t border-border p-4">
-        {post.cover_signed_url && (
+        {post.cover_signed_url && !post.midia_arquivada && (
           <section>
             <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Capa do post
@@ -290,6 +291,16 @@ function FeedCard({
     </article>
   );
 }
+
+function ArchivedPlaceholder() {
+  return (
+    <div className="flex aspect-[4/5] flex-col items-center justify-center bg-muted/60 text-muted-foreground">
+      <p className="text-xs font-medium uppercase tracking-wider">Mídia arquivada</p>
+    </div>
+  );
+}
+
+
 
 function MediaViewer({ post }: { post: any }) {
   const [emblaRef, embla] = useEmblaCarousel({ loop: false });
