@@ -264,9 +264,7 @@ export function PostForm(props: Props) {
       {/* Cover - apenas para vídeo */}
       {type === "video" && (
       <div>
-        <Label>
-          Capa {type === "video" ? "(obrigatória)" : "(opcional)"}
-        </Label>
+        <Label>Capa (obrigatória)</Label>
         <Input
           type="file"
           className="mt-2"
@@ -281,6 +279,7 @@ export function PostForm(props: Props) {
           />
         )}
       </div>
+      )}
 
       {/* Caption */}
       <div>
