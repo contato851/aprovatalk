@@ -38,7 +38,6 @@ function ClientsPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <NewPostDialog clients={q.data ?? []} />
-          <NewClientDialog />
         </div>
       </div>
 
@@ -134,79 +133,6 @@ function ClientCard({ client }: { client: any }) {
   );
 }
 
-function NewClientDialog() {
-  const qc = useQueryClient();
-  const createFn = useServerFn(createClientFn);
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [handle, setHandle] = useState("");
-  const [avatar, setAvatar] = useState<File | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  async function save() {
-    if (!name || !handle) return toast.error("Preencha nome e @.");
-    setSaving(true);
-    try {
-      let avatar_path: string | null = null;
-      if (avatar) avatar_path = await uploadToBucket("avatars", avatar);
-      await createFn({
-        data: { name, instagram_handle: handle, avatar_path },
-      });
-      toast.success("Cliente criado!");
-      qc.invalidateQueries({ queryKey: ["clients"] });
-      setOpen(false);
-      setName("");
-      setHandle("");
-      setAvatar(null);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-1.5">
-          <Plus className="h-4 w-4" /> Novo cliente
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Novo cliente</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>@ do Instagram</Label>
-            <Input
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              placeholder="talk.consultoria"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Avatar (opcional)</Label>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setAvatar(e.target.files?.[0] ?? null)}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={save} disabled={saving}>
-            {saving ? "Salvando…" : "Criar cliente"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function NewPostDialog({ clients }: { clients: any[] }) {
   const navigate = useNavigate();
