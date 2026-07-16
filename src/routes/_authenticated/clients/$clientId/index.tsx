@@ -4,8 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { getClient, listPosts } from "@/lib/admin.functions";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Plus } from "lucide-react";
-import { toast } from "sonner";
+import { Plus } from "lucide-react";
+
 
 export const Route = createFileRoute("/_authenticated/clients/$clientId/")({
   component: ClientDetail,
