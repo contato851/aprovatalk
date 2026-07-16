@@ -24,11 +24,9 @@ async function notifyWhatsApp(message: string) {
     });
     return;
   }
-  // CallMeBot espera o número com "+" e código do país. Normaliza removendo espaços/traços
-  // e garantindo o "+" no início.
-  const digits = rawPhone.replace(/[^\d]/g, "");
-  const phone = `+${digits}`;
-  const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(apikey)}`;
+  // CallMeBot espera apenas os dígitos (código do país + número), sem "+".
+  const phone = rawPhone.replace(/[^\d]/g, "");
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(apikey)}`;
   console.log("[whatsapp] enviando", { phone, messagePreview: message.slice(0, 60) });
   try {
     const res = await fetch(url, { method: "GET" });
