@@ -34,7 +34,15 @@ function ClientDetail() {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-4">
-        <AvatarUpload client={c} />
+        {c.avatar_signed_url ? (
+          <img
+            src={c.avatar_signed_url}
+            alt=""
+            className="h-16 w-16 rounded-full border border-border object-cover"
+          />
+        ) : (
+          <div className="h-16 w-16 rounded-full border border-border bg-muted" />
+        )}
         <div>
           <h1 className="font-display text-3xl font-bold">{c.name}</h1>
           <p className="text-sm text-muted-foreground">@{c.instagram_handle}</p>
