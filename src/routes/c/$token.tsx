@@ -211,7 +211,7 @@ function FeedCard({
 
       {/* Sections: cover + caption */}
       <div className="space-y-4 border-t border-border p-4">
-        {post.cover_signed_url && (
+        {post.cover_signed_url && !post.midia_arquivada && (
           <section>
             <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Capa do post
