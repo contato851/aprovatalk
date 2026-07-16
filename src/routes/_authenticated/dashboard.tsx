@@ -173,8 +173,20 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function TypeLabel({ type }: { type: string }) {
-  const label = type === "static" ? "Estático" : type === "carousel" ? "Carrossel" : "Vídeo";
-  return <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>;
+  const label = type === "static" ? "Estático" : type === "carousel" ? "Carrossel" : "Reel";
+  return (
+    <span
+      className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${
+        type === "static"
+          ? "bg-brand-orange text-white"
+          : type === "carousel"
+            ? "bg-brand-purple text-white"
+            : "bg-brand-chartreuse text-emerald-950"
+      }`}
+    >
+      {label}
+    </span>
+  );
 }
 
 function ListView({ posts }: { posts: Post[] }) {
@@ -240,7 +252,7 @@ function PostCard({ post }: { post: Post }) {
       params={{ postId: post.id }}
       className="group overflow-hidden rounded-xl border border-border bg-card transition hover:shadow-lg"
     >
-      <div className="relative aspect-square bg-muted">
+      <div className="relative aspect-[3/4] bg-muted">
         {thumb ? (
           <img src={thumb} alt="" className="h-full w-full object-cover" />
         ) : (
