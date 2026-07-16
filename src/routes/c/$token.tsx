@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -295,9 +295,13 @@ function MediaViewer({ post }: { post: any }) {
   const [emblaRef, embla] = useEmblaCarousel({ loop: false });
   const [idx, setIdx] = useState(0);
 
-  useMemo(() => {
+  useEffect(() => {
     if (!embla) return;
-    embla.on("select", () => setIdx(embla.selectedScrollSnap()));
+    const onSelect = () => setIdx(embla.selectedScrollSnap());
+    embla.on("select", onSelect);
+    return () => {
+      embla.off("select", onSelect);
+    };
   }, [embla]);
 
   const items: { signed_url: string; kind: "image" | "video" }[] = post.media ?? [];
