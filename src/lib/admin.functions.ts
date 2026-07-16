@@ -117,7 +117,12 @@ export const updateClient = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      name?: string;
+      instagram_handle?: string;
+      avatar_url?: string | null;
+      status?: "active" | "inactive";
+    } = {};
     if (data.name !== undefined) patch.name = data.name;
     if (data.instagram_handle !== undefined)
       patch.instagram_handle = data.instagram_handle.replace(/^@/, "");
