@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createPost, updatePost } from "@/lib/admin.functions";
 import { uploadToBucket } from "@/lib/upload";
+import { resizeImageToExact } from "@/lib/image-resize";
 
 type PostType = "static" | "carousel" | "video";
 
