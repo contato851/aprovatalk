@@ -1,13 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getClient, listPosts, updateClient } from "@/lib/admin.functions";
-import { uploadToBucket } from "@/lib/upload";
+import { getClient, listPosts } from "@/lib/admin.functions";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Camera, Copy, Plus } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useRef, useState } from "react";
 
 
 
@@ -36,7 +34,15 @@ function ClientDetail() {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-4">
-        <AvatarUpload client={c} />
+        {c.avatar_signed_url ? (
+          <img
+            src={c.avatar_signed_url}
+            alt=""
+            className="h-16 w-16 rounded-full border border-border object-cover"
+          />
+        ) : (
+          <div className="h-16 w-16 rounded-full border border-border bg-muted" />
+        )}
         <div>
           <h1 className="font-display text-3xl font-bold">{c.name}</h1>
           <p className="text-sm text-muted-foreground">@{c.instagram_handle}</p>
@@ -145,65 +151,3 @@ function ClientDetail() {
   );
 }
 
-function AvatarUpload({ client }: { client: any }) {
-  const qc = useQueryClient();
-  const updateFn = useServerFn(updateClient);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-
-  async function handleFile(file: File) {
-    setUploading(true);
-    try {
-      const avatar_path = await uploadToBucket("avatars", file);
-      await updateFn({
-        data: {
-          id: client.id,
-          avatar_path,
-        },
-      });
-      toast.success("Foto atualizada!");
-      qc.invalidateQueries({ queryKey: ["client", client.id] });
-      qc.invalidateQueries({ queryKey: ["clients"] });
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => inputRef.current?.click()}
-      disabled={uploading}
-      className="group relative h-16 w-16 rounded-full border border-border disabled:opacity-60"
-      title="Trocar foto"
-    >
-      {client.avatar_signed_url ? (
-        <img
-          src={client.avatar_signed_url}
-          alt=""
-          className="h-16 w-16 rounded-full object-cover group-hover:opacity-70"
-        />
-      ) : (
-        <div className="h-16 w-16 rounded-full bg-muted group-hover:bg-muted/70" />
-      )}
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-foreground/40 text-[10px] font-medium text-background opacity-0 transition group-hover:opacity-100">
-        Trocar
-      </span>
-      <span className="absolute -bottom-0.5 -right-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow-sm">
-        <Camera className="h-3 w-3" />
-      </span>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFile(file);
-        }}
-      />
-    </button>
-  );
-}
