@@ -176,7 +176,7 @@ function AvatarUpload({ client }: { client: any }) {
       type="button"
       onClick={() => inputRef.current?.click()}
       disabled={uploading}
-      className="group relative h-16 w-16 rounded-full disabled:opacity-60"
+      className="group relative h-16 w-16 rounded-full border border-border disabled:opacity-60"
       title="Trocar foto"
     >
       {client.avatar_signed_url ? (
