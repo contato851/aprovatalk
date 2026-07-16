@@ -8,9 +8,9 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { TalkStar } from "@/components/talk/star";
 import { useQueryClient } from "@tanstack/react-query";
 import { LogOut } from "lucide-react";
+import talkLogoAsset from "@/assets/talk-logo.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -38,11 +38,12 @@ function AuthenticatedLayout() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <TalkStar className="h-6 w-6 text-brand-orange" />
-            <span className="font-display text-xl font-semibold tracking-tight">
-              Talk
-            </span>
+          <Link to="/dashboard" className="flex items-center">
+            <img
+              src={talkLogoAsset.url}
+              alt="Talk"
+              className="h-8 w-auto"
+            />
           </Link>
           <nav className="hidden gap-6 md:flex">
             <Link

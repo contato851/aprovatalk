@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TalkStar } from "@/components/talk/star";
+import talkLogoAsset from "@/assets/talk-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -12,11 +13,12 @@ function Landing() {
       <TalkStar className="pointer-events-none absolute bottom-[-8rem] left-[-6rem] h-80 w-80 text-brand-chartreuse-soft" />
 
       <header className="relative z-10 flex items-center justify-between px-6 py-6 md:px-12">
-        <div className="flex items-center gap-2">
-          <TalkStar className="h-6 w-6 text-brand-orange" />
-          <span className="font-display text-xl font-semibold tracking-tight">
-            Talk
-          </span>
+        <div className="flex items-center">
+          <img
+            src={talkLogoAsset.url}
+            alt="Talk"
+            className="h-8 w-auto"
+          />
         </div>
         <Link
           to="/auth"
