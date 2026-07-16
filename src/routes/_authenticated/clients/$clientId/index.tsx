@@ -4,7 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { getClient, listPosts } from "@/lib/admin.functions";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
+import { toast } from "sonner";
+
 
 
 export const Route = createFileRoute("/_authenticated/clients/$clientId/")({
@@ -46,6 +48,16 @@ function ClientDetail() {
           <p className="text-sm text-muted-foreground">@{c.instagram_handle}</p>
         </div>
         <div className="ml-auto flex gap-2">
+          <button
+            onClick={() => {
+              const link = `${typeof window !== "undefined" ? window.location.origin : ""}/c/${c.access_token}`;
+              navigator.clipboard.writeText(link);
+              toast.success("Link copiado!");
+            }}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent"
+          >
+            <Copy className="h-4 w-4" /> Copiar link do cliente
+          </button>
           <Link
             to="/clients/$clientId/new"
             params={{ clientId }}
@@ -56,6 +68,7 @@ function ClientDetail() {
         </div>
 
       </div>
+
 
       <div>
         <h2 className="font-display text-lg font-semibold">Posts</h2>
