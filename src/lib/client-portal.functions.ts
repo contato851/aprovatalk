@@ -14,6 +14,39 @@ async function signPath(admin: any, bucket: string, path: string | null) {
   return data?.signedUrl ?? null;
 }
 
+async function notifyWhatsApp(message: string) {
+  const phone = process.env.CALLMEBOT_PHONE;
+  const apikey = process.env.CALLMEBOT_APIKEY;
+  if (!phone || !apikey) {
+    console.warn("[whatsapp] CALLMEBOT_PHONE/CALLMEBOT_APIKEY não configurados");
+    return;
+  }
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(apikey)}`;
+  try {
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) {
+      console.error("[whatsapp] falha", res.status, await res.text().catch(() => ""));
+    }
+  } catch (err) {
+    console.error("[whatsapp] erro", err);
+  }
+}
+
+function formatScheduledDate(iso: string) {
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Sao_Paulo",
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
 /**
  * Retorna cliente + posts (todos) validando pelo access_token do link.
  */
