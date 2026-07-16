@@ -5,19 +5,9 @@ import { getClient, listPosts, updateClient } from "@/lib/admin.functions";
 import { uploadToBucket } from "@/lib/upload";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Pencil, Plus } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { useRef, useState } from "react";
 
 
 
