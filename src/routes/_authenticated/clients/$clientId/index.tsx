@@ -188,7 +188,7 @@ function AvatarUpload({ client }: { client: any }) {
       ) : (
         <div className="h-16 w-16 rounded-full bg-muted group-hover:bg-muted/70" />
       )}
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100">
+      <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-foreground/40 text-[10px] font-medium text-background opacity-0 transition group-hover:opacity-100">
         Trocar
       </span>
       <input
