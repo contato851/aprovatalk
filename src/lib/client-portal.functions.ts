@@ -128,6 +128,9 @@ export const approvePostByToken = createServerFn({ method: "POST" })
       .select("scheduled_at")
       .single();
     if (error) throw error;
+    await notifyWhatsApp(
+      `✅ ${client.name} aprovou o post de ${formatScheduledDate(post.scheduled_at)}`,
+    );
     return { scheduled_at: post.scheduled_at };
   });
 
