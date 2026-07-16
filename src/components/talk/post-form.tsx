@@ -170,7 +170,7 @@ export function PostForm(props: Props) {
             [
               { v: "static", l: "Estático" },
               { v: "carousel", l: "Carrossel" },
-              { v: "video", l: "Vídeo" },
+              { v: "video", l: "Reels" },
             ] as const
           ).map((opt) => (
             <button
@@ -261,11 +261,10 @@ export function PostForm(props: Props) {
         )}
       </div>
 
-      {/* Cover */}
+      {/* Cover - apenas para vídeo */}
+      {type === "video" && (
       <div>
-        <Label>
-          Capa {type === "video" ? "(obrigatória)" : "(opcional)"}
-        </Label>
+        <Label>Capa (obrigatória)</Label>
         <Input
           type="file"
           className="mt-2"
@@ -280,6 +279,7 @@ export function PostForm(props: Props) {
           />
         )}
       </div>
+      )}
 
       {/* Caption */}
       <div>
