@@ -15,18 +15,25 @@ async function signPath(admin: any, bucket: string, path: string | null) {
 }
 
 async function notifyWhatsApp(message: string) {
-  const phone = process.env.CALLMEBOT_PHONE;
+  const rawPhone = process.env.CALLMEBOT_PHONE;
   const apikey = process.env.CALLMEBOT_APIKEY;
-  if (!phone || !apikey) {
-    console.warn("[whatsapp] CALLMEBOT_PHONE/CALLMEBOT_APIKEY não configurados");
+  if (!rawPhone || !apikey) {
+    console.warn("[whatsapp] CALLMEBOT_PHONE/CALLMEBOT_APIKEY não configurados", {
+      hasPhone: !!rawPhone,
+      hasApiKey: !!apikey,
+    });
     return;
   }
+  // CallMeBot espera o número com "+" e código do país. Normaliza removendo espaços/traços
+  // e garantindo o "+" no início.
+  const digits = rawPhone.replace(/[^\d]/g, "");
+  const phone = `+${digits}`;
   const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(apikey)}`;
+  console.log("[whatsapp] enviando", { phone, messagePreview: message.slice(0, 60) });
   try {
     const res = await fetch(url, { method: "GET" });
-    if (!res.ok) {
-      console.error("[whatsapp] falha", res.status, await res.text().catch(() => ""));
-    }
+    const body = await res.text().catch(() => "");
+    console.log("[whatsapp] resposta", { status: res.status, ok: res.ok, body: body.slice(0, 400) });
   } catch (err) {
     console.error("[whatsapp] erro", err);
   }
