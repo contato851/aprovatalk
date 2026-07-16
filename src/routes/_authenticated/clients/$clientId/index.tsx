@@ -5,7 +5,7 @@ import { getClient, listPosts, updateClient } from "@/lib/admin.functions";
 import { uploadToBucket } from "@/lib/upload";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Plus } from "lucide-react";
+import { Camera, Copy, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useRef, useState } from "react";
 
