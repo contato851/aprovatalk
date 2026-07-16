@@ -1,11 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getClient, listPosts } from "@/lib/admin.functions";
+import { getClient, listPosts, updateClient } from "@/lib/admin.functions";
+import { uploadToBucket } from "@/lib/upload";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Plus } from "lucide-react";
+import { Copy, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 
 
