@@ -206,7 +206,8 @@ function FeedCard({
       </div>
 
       {/* Media */}
-      <MediaViewer post={post} />
+      {post.midia_arquivada ? <ArchivedPlaceholder /> : <MediaViewer post={post} />}
+
 
       {/* Sections: cover + caption */}
       <div className="space-y-4 border-t border-border p-4">

@@ -16,6 +16,7 @@ import { Route as CTokenRouteImport } from './routes/c/$token'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients/index'
 import { Route as AuthenticatedClientsClientIdIndexRouteImport } from './routes/_authenticated/clients/$clientId/index'
+import { Route as ApiPublicHooksCleanupMediaRouteImport } from './routes/api/public/hooks/cleanup-media'
 import { Route as AuthenticatedPostsPostIdEditRouteImport } from './routes/_authenticated/posts/$postId/edit'
 import { Route as AuthenticatedClientsClientIdNewRouteImport } from './routes/_authenticated/clients/$clientId/new'
 
@@ -55,6 +56,12 @@ const AuthenticatedClientsClientIdIndexRoute =
     path: '/clients/$clientId/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHooksCleanupMediaRoute =
+  ApiPublicHooksCleanupMediaRouteImport.update({
+    id: '/api/public/hooks/cleanup-media',
+    path: '/api/public/hooks/cleanup-media',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedPostsPostIdEditRoute =
   AuthenticatedPostsPostIdEditRouteImport.update({
     id: '/posts/$postId/edit',
@@ -76,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
+  '/api/public/hooks/cleanup-media': typeof ApiPublicHooksCleanupMediaRoute
   '/clients/$clientId/': typeof AuthenticatedClientsClientIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -86,6 +94,7 @@ export interface FileRoutesByTo {
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
+  '/api/public/hooks/cleanup-media': typeof ApiPublicHooksCleanupMediaRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdIndexRoute
 }
 export interface FileRoutesById {
@@ -98,6 +107,7 @@ export interface FileRoutesById {
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/_authenticated/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
+  '/api/public/hooks/cleanup-media': typeof ApiPublicHooksCleanupMediaRoute
   '/_authenticated/clients/$clientId/': typeof AuthenticatedClientsClientIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/clients/$clientId/new'
     | '/posts/$postId/edit'
+    | '/api/public/hooks/cleanup-media'
     | '/clients/$clientId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/clients/$clientId/new'
     | '/posts/$postId/edit'
+    | '/api/public/hooks/cleanup-media'
     | '/clients/$clientId'
   id:
     | '__root__'
@@ -131,6 +143,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clients/'
     | '/_authenticated/clients/$clientId/new'
     | '/_authenticated/posts/$postId/edit'
+    | '/api/public/hooks/cleanup-media'
     | '/_authenticated/clients/$clientId/'
   fileRoutesById: FileRoutesById
 }
@@ -139,6 +152,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CTokenRoute: typeof CTokenRoute
+  ApiPublicHooksCleanupMediaRoute: typeof ApiPublicHooksCleanupMediaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsClientIdIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/cleanup-media': {
+      id: '/api/public/hooks/cleanup-media'
+      path: '/api/public/hooks/cleanup-media'
+      fullPath: '/api/public/hooks/cleanup-media'
+      preLoaderRoute: typeof ApiPublicHooksCleanupMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/posts/$postId/edit': {
       id: '/_authenticated/posts/$postId/edit'
       path: '/posts/$postId/edit'
@@ -234,6 +255,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CTokenRoute: CTokenRoute,
+  ApiPublicHooksCleanupMediaRoute: ApiPublicHooksCleanupMediaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
