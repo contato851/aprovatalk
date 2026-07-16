@@ -27,7 +27,7 @@ function ClientDetail() {
 
   if (!clientQ.data) return <p className="text-sm text-muted-foreground">Carregando…</p>;
   const c = clientQ.data as any;
-  const link = `${typeof window !== "undefined" ? window.location.origin : ""}/c/${c.access_token}`;
+
 
   return (
     <div className="space-y-8">
