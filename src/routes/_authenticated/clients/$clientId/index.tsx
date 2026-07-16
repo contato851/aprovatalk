@@ -1,11 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getClient, listPosts } from "@/lib/admin.functions";
+import { getClient, listPosts, updateClient } from "@/lib/admin.functions";
+import { uploadToBucket } from "@/lib/upload";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Copy, Plus } from "lucide-react";
+import { Copy, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 
 
@@ -47,7 +59,8 @@ function ClientDetail() {
           <h1 className="font-display text-3xl font-bold">{c.name}</h1>
           <p className="text-sm text-muted-foreground">@{c.instagram_handle}</p>
         </div>
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex flex-wrap gap-2">
+          <EditClientDialog client={c} />
           <button
             onClick={() => {
               const link = `${typeof window !== "undefined" ? window.location.origin : ""}/c/${c.access_token}`;
@@ -148,5 +161,118 @@ function ClientDetail() {
         )}
       </div>
     </div>
+  );
+}
+
+function EditClientDialog({ client }: { client: any }) {
+  const qc = useQueryClient();
+  const updateFn = useServerFn(updateClient);
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(client.name);
+  const [handle, setHandle] = useState(client.instagram_handle);
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  function reset() {
+    setName(client.name);
+    setHandle(client.instagram_handle);
+    setAvatar(null);
+  }
+
+  async function save() {
+    if (!name.trim() || !handle.trim()) {
+      return toast.error("Preencha nome e @.");
+    }
+    setSaving(true);
+    try {
+      let avatar_path: string | undefined;
+      if (avatar) avatar_path = await uploadToBucket("avatars", avatar);
+      await updateFn({
+        data: {
+          id: client.id,
+          name: name.trim(),
+          instagram_handle: handle.trim(),
+          ...(avatar_path !== undefined ? { avatar_path } : {}),
+        },
+      });
+      toast.success("Cliente atualizado!");
+      qc.invalidateQueries({ queryKey: ["client", client.id] });
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      setOpen(false);
+      setAvatar(null);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) reset();
+      }}
+    >
+      <button
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent"
+      >
+        <Pencil className="h-4 w-4" /> Editar cliente
+      </button>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar cliente</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            {avatar ? (
+              <img
+                src={URL.createObjectURL(avatar)}
+                alt=""
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            ) : client.avatar_signed_url ? (
+              <img
+                src={client.avatar_signed_url}
+                alt=""
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="h-16 w-16 rounded-full bg-muted" />
+            )}
+            <div className="flex-1 space-y-2">
+              <Label>Foto</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setAvatar(e.target.files?.[0] ?? null)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Nome</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>@ do Instagram</Label>
+            <Input
+              value={handle}
+              onChange={(e) => setHandle(e.target.value)}
+              placeholder="talk.consultoria"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button onClick={save} disabled={saving}>
+            {saving ? "Salvando…" : "Salvar alterações"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
