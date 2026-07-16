@@ -86,7 +86,7 @@ function ClientDetail() {
                   params={{ postId: p.id }}
                   className="group overflow-hidden rounded-xl border border-border bg-card transition hover:shadow-lg"
                 >
-                  <div className="relative aspect-square bg-muted">
+                  <div className={`relative ${p.type === "video" ? "aspect-square" : "aspect-[4/5]"} bg-muted`}>
                     {thumb && (
                       <img src={thumb} alt="" className="h-full w-full object-cover" />
                     )}
