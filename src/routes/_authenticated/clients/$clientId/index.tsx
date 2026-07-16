@@ -59,7 +59,8 @@ function ClientDetail() {
           <h1 className="font-display text-3xl font-bold">{c.name}</h1>
           <p className="text-sm text-muted-foreground">@{c.instagram_handle}</p>
         </div>
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex flex-wrap gap-2">
+          <EditClientDialog client={c} />
           <button
             onClick={() => {
               const link = `${typeof window !== "undefined" ? window.location.origin : ""}/c/${c.access_token}`;
