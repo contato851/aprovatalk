@@ -170,7 +170,7 @@ export function PostForm(props: Props) {
             [
               { v: "static", l: "Estático" },
               { v: "carousel", l: "Carrossel" },
-              { v: "video", l: "Vídeo" },
+              { v: "video", l: "Reels" },
             ] as const
           ).map((opt) => (
             <button
