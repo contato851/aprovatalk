@@ -82,18 +82,24 @@ function ClientCard({ client }: { client: any }) {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="flex items-center gap-3">
+      <Link
+        to="/clients/$clientId"
+        params={{ clientId: client.id }}
+        className="flex items-center gap-3 group"
+      >
         {client.avatar_signed_url ? (
           <img
             src={client.avatar_signed_url}
             alt=""
-            className="h-12 w-12 rounded-full object-cover"
+            className="h-12 w-12 rounded-full object-cover transition group-hover:ring-2 group-hover:ring-brand-orange/40"
           />
         ) : (
-          <div className="h-12 w-12 rounded-full bg-muted" />
+          <div className="h-12 w-12 rounded-full bg-muted transition group-hover:ring-2 group-hover:ring-brand-orange/40" />
         )}
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-display font-semibold">{client.name}</h3>
+          <h3 className="truncate font-display font-semibold group-hover:underline">
+            {client.name}
+          </h3>
           <p className="text-xs text-muted-foreground">
             @{client.instagram_handle}
           </p>
@@ -107,16 +113,9 @@ function ClientCard({ client }: { client: any }) {
         >
           {client.status === "active" ? "Ativo" : "Inativo"}
         </span>
-      </div>
+      </Link>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Link
-          to="/clients/$clientId"
-          params={{ clientId: client.id }}
-          className="inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          Abrir
-        </Link>
         <button
           onClick={() => {
             navigator.clipboard.writeText(link);
