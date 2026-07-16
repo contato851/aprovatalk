@@ -128,7 +128,11 @@ export function PostForm(props: Props) {
       const uploaded = await Promise.all(
         media.map(async (m) => {
           if (m.path) return { path: m.path, kind: m.kind };
-          const p = await uploadToBucket("post-media", m.file!);
+          let fileToUpload = m.file!;
+          if (m.kind === "image" && (type === "static" || type === "carousel")) {
+            fileToUpload = await resizeImageToExact(fileToUpload, 1080, 1440);
+          }
+          const p = await uploadToBucket("post-media", fileToUpload);
           return { path: p, kind: m.kind };
         }),
       );
