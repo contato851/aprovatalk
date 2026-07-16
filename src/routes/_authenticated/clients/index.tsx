@@ -4,14 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Copy, Plus, Power } from "lucide-react";
-import {
-  createClient as createClientFn,
-  listClients,
-  updateClient,
-} from "@/lib/admin.functions";
-import { uploadToBucket } from "@/lib/upload";
+import { listClients, updateClient } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
