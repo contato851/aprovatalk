@@ -292,6 +292,16 @@ function FeedCard({
   );
 }
 
+function ArchivedPlaceholder() {
+  return (
+    <div className="flex aspect-[4/5] flex-col items-center justify-center bg-muted/60 text-muted-foreground">
+      <p className="text-xs font-medium uppercase tracking-wider">Mídia arquivada</p>
+    </div>
+  );
+}
+
+
+
 function MediaViewer({ post }: { post: any }) {
   const [emblaRef, embla] = useEmblaCarousel({ loop: false });
   const [idx, setIdx] = useState(0);
