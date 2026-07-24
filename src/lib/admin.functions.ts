@@ -183,8 +183,9 @@ export const getPost = createServerFn({ method: "GET" })
     const { data: post, error } = await context.supabase
       .from("posts")
       .select(
-        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind)",
+        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind), adjustment_points:post_adjustment_points(id, time_seconds, note, frame_url, created_at)",
       )
+
       .eq("id", data.id)
       .single();
     if (error) throw error;
