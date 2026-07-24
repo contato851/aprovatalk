@@ -302,17 +302,17 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCursor((c) => addMonths(c, -1))}
-                className="h-9 w-9 grid place-items-center rounded-full bg-white/10 hover:bg-white/20 transition"
+                className="h-9 w-9 grid place-items-center rounded-full bg-black/10 hover:bg-black/20 transition"
                 aria-label="Mês anterior"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <div className="px-4 py-1.5 rounded-full bg-white/10 capitalize text-sm font-medium min-w-[160px] text-center">
+              <div className="px-4 py-1.5 rounded-full bg-black/10 capitalize text-sm font-medium min-w-[160px] text-center">
                 {monthLabel}
               </div>
               <button
                 onClick={() => setCursor((c) => addMonths(c, 1))}
-                className="h-9 w-9 grid place-items-center rounded-full bg-white/10 hover:bg-white/20 transition"
+                className="h-9 w-9 grid place-items-center rounded-full bg-black/10 hover:bg-black/20 transition"
                 aria-label="Próximo mês"
               >
                 <ChevronRight className="h-4 w-4" />
