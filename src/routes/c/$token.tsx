@@ -274,7 +274,7 @@ function FeedCard({
         body: pointDraft.frame_blob,
       });
       if (!putRes.ok) throw new Error("Falha ao enviar frame.");
-      await addPointFn({
+      const saved = await addPointFn({
         data: {
           token,
           postId: post.id,
@@ -285,7 +285,11 @@ function FeedCard({
       });
       toast.success("Ponto de ajuste salvo.");
       setPointDraft(null);
-      invalidate();
+      updatePointsLocally((pts) =>
+        [...pts, saved].sort(
+          (a, b) => Number(a.time_seconds) - Number(b.time_seconds),
+        ),
+      );
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao salvar ponto.");
     } finally {
@@ -298,7 +302,7 @@ function FeedCard({
     setBusy(true);
     try {
       await deletePointFn({ data: { token, pointId } });
-      invalidate();
+      updatePointsLocally((pts) => pts.filter((p) => p.id !== pointId));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro");
     } finally {
