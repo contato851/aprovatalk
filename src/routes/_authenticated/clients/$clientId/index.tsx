@@ -42,8 +42,11 @@ function ClientDetail() {
   const c = clientQ.data as any;
   const all = (postsQ.data ?? []) as any[];
   const planning = all.filter((p) => p.status === "planning");
-  const approval = all.filter((p) => p.status !== "planning");
-  const list = tab === "planning" ? planning : approval;
+  const review = all.filter((p) => p.status === "ready_for_review");
+  const approval = all.filter(
+    (p) => p.status !== "planning" && p.status !== "ready_for_review",
+  );
+  const list = tab === "planning" ? planning : tab === "review" ? review : approval;
 
   async function handleRelease(id: string) {
     try {
