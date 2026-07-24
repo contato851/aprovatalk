@@ -339,3 +339,70 @@ async function getClientByToken(admin: any, token: string) {
   return data;
 }
 
+
+/**
+ * Retorna slots de Edição (delivery_slots) para um cliente, validando pelo token.
+ * Somente leitura.
+ */
+export const getDeliverySlotsByToken = createServerFn({ method: "GET" })
+  .inputValidator((d: { token: string; monthStart: string; monthEnd: string }) =>
+    z
+      .object({
+        token: z.string().uuid(),
+        monthStart: z.string(),
+        monthEnd: z.string(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await getClientByToken(supabaseAdmin, data.token);
+    const { data: rows, error } = await supabaseAdmin
+      .from("delivery_slots")
+      .select("*")
+      .gte("slot_date", data.monthStart)
+      .lte("slot_date", data.monthEnd);
+    if (error) throw error;
+    return rows ?? [];
+  });
+
+/**
+ * Retorna slots de Design (design_slots) para um cliente, validando pelo token.
+ * Também devolve URLs assinadas das referências.
+ */
+export const getDesignSlotsByToken = createServerFn({ method: "GET" })
+  .inputValidator((d: { token: string; monthStart: string; monthEnd: string }) =>
+    z
+      .object({
+        token: z.string().uuid(),
+        monthStart: z.string(),
+        monthEnd: z.string(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await getClientByToken(supabaseAdmin, data.token);
+    const { data: rows, error } = await supabaseAdmin
+      .from("design_slots")
+      .select("*")
+      .gte("slot_date", data.monthStart)
+      .lte("slot_date", data.monthEnd);
+    if (error) throw error;
+
+    const allPaths = new Set<string>();
+    for (const r of rows ?? []) {
+      for (const p of (r as any).references_images ?? []) allPaths.add(p);
+    }
+    const signedByPath: Record<string, string> = {};
+    if (allPaths.size > 0) {
+      const { data: signed } = await supabaseAdmin.storage
+        .from("design-references")
+        .createSignedUrls([...allPaths], 60 * 60);
+      const paths = [...allPaths];
+      (signed ?? []).forEach((s, i) => {
+        if (s.signedUrl) signedByPath[paths[i]] = s.signedUrl;
+      });
+    }
+    return { rows: rows ?? [], signedByPath };
+  });
