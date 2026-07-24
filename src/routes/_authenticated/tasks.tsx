@@ -9,6 +9,7 @@ import {
   updateTask,
   deleteTask,
   setTaskStatus,
+  getCurrentUserId,
   type TeamMember,
 } from "@/lib/tasks.functions";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,7 @@ type Task = {
   completed_by: string | null;
   completed_by_name: string | null;
   completed_at: string | null;
+  created_by: string | null;
 };
 
 type Filter = "all" | "pending" | "done";
@@ -106,10 +108,13 @@ function isOverdue(t: Task) {
 function TasksPage() {
   const listTasksFn = useServerFn(listTasks);
   const listTeamFn = useServerFn(listTeamMembers);
+  const getCurrentUserIdFn = useServerFn(getCurrentUserId);
   const qc = useQueryClient();
 
   const tasksQ = useQuery({ queryKey: ["tasks"], queryFn: () => listTasksFn() });
   const teamQ = useQuery({ queryKey: ["team-members"], queryFn: () => listTeamFn() });
+  const meQ = useQuery({ queryKey: ["me"], queryFn: () => getCurrentUserIdFn() });
+  const currentUserId = meQ.data?.userId ?? null;
 
   const [filter, setFilter] = useState<Filter>("all");
   const [participantFilter, setParticipantFilter] = useState<string>("all");
@@ -322,15 +327,17 @@ function TasksPage() {
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
-                <button
-                  onClick={() => {
-                    if (confirm("Excluir esta tarefa?")) deleteMut.mutate(t.id);
-                  }}
-                  className="rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  title="Excluir"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                {currentUserId && t.created_by === currentUserId && (
+                  <button
+                    onClick={() => {
+                      if (confirm("Excluir esta tarefa?")) deleteMut.mutate(t.id);
+                    }}
+                    className="rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    title="Excluir"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           );
