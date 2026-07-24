@@ -206,6 +206,8 @@ export type Database = {
           cover_url: string | null
           created_at: string
           id: string
+          linked_delivery_slot_id: string | null
+          linked_design_slot_id: string | null
           midia_arquivada: boolean
           responded_at: string | null
           scheduled_at: string
@@ -220,6 +222,8 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           id?: string
+          linked_delivery_slot_id?: string | null
+          linked_design_slot_id?: string | null
           midia_arquivada?: boolean
           responded_at?: string | null
           scheduled_at: string
@@ -234,6 +238,8 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           id?: string
+          linked_delivery_slot_id?: string | null
+          linked_design_slot_id?: string | null
           midia_arquivada?: boolean
           responded_at?: string | null
           scheduled_at?: string
@@ -247,6 +253,20 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_linked_delivery_slot_id_fkey"
+            columns: ["linked_delivery_slot_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_linked_design_slot_id_fkey"
+            columns: ["linked_design_slot_id"]
+            isOneToOne: false
+            referencedRelation: "design_slots"
             referencedColumns: ["id"]
           },
         ]
@@ -288,7 +308,12 @@ export type Database = {
     Enums: {
       app_role: "admin" | "designer" | "editor"
       client_status: "active" | "inactive"
-      post_status: "planning" | "pending" | "approved" | "rejected"
+      post_status:
+        | "planning"
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "ready_for_review"
       post_type: "static" | "carousel" | "video"
     }
     CompositeTypes: {
@@ -419,7 +444,13 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "designer", "editor"],
       client_status: ["active", "inactive"],
-      post_status: ["planning", "pending", "approved", "rejected"],
+      post_status: [
+        "planning",
+        "pending",
+        "approved",
+        "rejected",
+        "ready_for_review",
+      ],
       post_type: ["static", "carousel", "video"],
     },
   },
