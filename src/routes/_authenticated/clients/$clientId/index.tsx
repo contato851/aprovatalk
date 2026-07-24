@@ -13,7 +13,7 @@ import { Copy, Plus, Rocket } from "lucide-react";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
-  tab: z.enum(["planning", "approval"]).default("approval"),
+  tab: z.enum(["planning", "review", "approval"]).default("approval"),
 });
 
 export const Route = createFileRoute("/_authenticated/clients/$clientId/")({
