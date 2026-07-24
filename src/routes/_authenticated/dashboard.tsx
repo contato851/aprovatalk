@@ -23,7 +23,7 @@ function DashboardPage() {
     type?: "static" | "carousel" | "video";
     status?: "pending" | "approved" | "rejected";
   }>({});
-  const [view, setView] = useState<"list" | "calendar">("list");
+  
 
   const clientsQ = useQuery({
     queryKey: ["clients"],
