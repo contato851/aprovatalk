@@ -271,6 +271,57 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          completed_by_name: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_time: string
+          id: string
+          participants: string[]
+          start_time: string
+          status: string
+          task_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_by_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time: string
+          id?: string
+          participants?: string[]
+          start_time: string
+          status?: string
+          task_date: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          completed_by_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_time?: string
+          id?: string
+          participants?: string[]
+          start_time?: string
+          status?: string
+          task_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
