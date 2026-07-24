@@ -357,12 +357,24 @@ async function enrichPost(supabase: any, post: any) {
   const client_avatar_signed_url = post.client?.avatar_url
     ? await signStoragePath(supabase, BUCKETS.avatars, post.client.avatar_url)
     : null;
+  const points = await Promise.all(
+    [...(post.adjustment_points ?? [])]
+      .sort((a: any, b: any) => a.time_seconds - b.time_seconds)
+      .map(async (pt: any) => ({
+        ...pt,
+        frame_signed_url: pt.frame_url
+          ? await signStoragePath(supabase, BUCKETS.frames, pt.frame_url)
+          : null,
+      })),
+  );
   return {
     ...post,
     media,
     cover_signed_url,
+    adjustment_points: points,
     client: post.client
       ? { ...post.client, avatar_signed_url: client_avatar_signed_url }
       : null,
   };
 }
+
