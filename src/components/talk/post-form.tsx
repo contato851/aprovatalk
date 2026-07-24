@@ -17,7 +17,7 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { X, GripVertical, Link2 } from "lucide-react";
+import { X, GripVertical, Link2, FolderInput, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,9 +28,11 @@ import {
   releasePostForApproval,
   listAvailableSlots,
 } from "@/lib/admin.functions";
+import { listDriveFolder, importDriveFiles } from "@/lib/drive.functions";
 import { uploadToBucket } from "@/lib/upload";
 import { resizeImageToExact } from "@/lib/image-resize";
 import { format, parseISO } from "date-fns";
+
 import { ptBR } from "date-fns/locale";
 
 type PostType = "static" | "carousel" | "video";
@@ -65,6 +67,9 @@ export function PostForm(props: Props) {
   const updateFn = useServerFn(updatePost);
   const releaseFn = useServerFn(releasePostForApproval);
   const listSlotsFn = useServerFn(listAvailableSlots);
+  const listDriveFn = useServerFn(listDriveFolder);
+  const importDriveFn = useServerFn(importDriveFiles);
+
 
   const initial = props.mode === "edit" ? props.initial : null;
   const currentStatus: PostStatus =
@@ -114,6 +119,73 @@ export function PostForm(props: Props) {
   );
   const [slotOptions, setSlotOptions] = useState<any[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // ---- Google Drive ----
+  const [driveUrl, setDriveUrl] = useState("");
+  const [driveFiles, setDriveFiles] = useState<any[]>([]);
+  const [driveLoading, setDriveLoading] = useState(false);
+  const [driveOpen, setDriveOpen] = useState(false);
+  const [importingIds, setImportingIds] = useState<Set<string>>(new Set());
+
+  async function loadDrive() {
+    if (!driveUrl.trim()) return;
+    setDriveLoading(true);
+    try {
+      const res = await listDriveFn({ data: { url: driveUrl.trim() } });
+      const filtered = (res.files ?? []).filter((f: any) => {
+        const m = f.mimeType ?? "";
+        return m.startsWith("image/") || m.startsWith("video/");
+      });
+      setDriveFiles(filtered);
+      if (filtered.length === 0) toast.info("Nenhuma imagem/vídeo encontrada nesta pasta.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao listar Drive");
+    } finally {
+      setDriveLoading(false);
+    }
+  }
+
+  async function importFromDrive(fileIds: string[], target: "media" | "cover") {
+    if (fileIds.length === 0) return;
+    setImportingIds((prev) => {
+      const n = new Set(prev);
+      fileIds.forEach((id) => n.add(id));
+      return n;
+    });
+    try {
+      const bucket = target === "cover" ? "post-covers" : "post-media";
+      const res = await importDriveFn({ data: { fileIds, bucket } });
+      if (target === "cover") {
+        const first = res[0];
+        if (first) {
+          setCoverPath(first.path);
+          setCoverPreview(first.signed_url);
+          setCoverFile(null);
+          toast.success("Capa importada do Drive.");
+        }
+      } else {
+        const newSlots: MediaSlot[] = res.map((r) => ({
+          id: crypto.randomUUID(),
+          path: r.path,
+          previewUrl: r.signed_url ?? "",
+          kind: r.kind,
+        }));
+        if (type === "static" || type === "video") setMedia(newSlots.slice(0, 1));
+        else setMedia((prev) => [...prev, ...newSlots]);
+        toast.success(`${res.length} arquivo(s) importado(s).`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao importar do Drive");
+    } finally {
+      setImportingIds((prev) => {
+        const n = new Set(prev);
+        fileIds.forEach((id) => n.delete(id));
+        return n;
+      });
+    }
+  }
+
+
 
   useEffect(() => {
     if (!isDraft || linkKind === "none") {
@@ -372,6 +444,125 @@ export function PostForm(props: Props) {
           </div>
         )}
       </div>
+
+      {/* Google Drive importer */}
+      <div className="rounded-2xl border border-dashed border-brand-chartreuse/50 bg-brand-chartreuse-soft/30 p-4">
+        <button
+          type="button"
+          onClick={() => setDriveOpen((v) => !v)}
+          className="flex w-full items-center justify-between text-left"
+        >
+          <span className="flex items-center gap-2 text-sm font-medium text-emerald-900">
+            <FolderInput className="h-4 w-4" /> Importar do Google Drive
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {driveOpen ? "ocultar" : "abrir"}
+          </span>
+        </button>
+        {driveOpen && (
+          <div className="mt-3 space-y-3">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                placeholder="Cole o link da pasta ou arquivo do Drive"
+                value={driveUrl}
+                onChange={(e) => setDriveUrl(e.target.value)}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={loadDrive}
+                disabled={driveLoading || !driveUrl.trim()}
+              >
+                {driveLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Listar arquivos"
+                )}
+              </Button>
+            </div>
+            {driveFiles.length > 0 && (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                {driveFiles.map((f) => {
+                  const busy = importingIds.has(f.id);
+                  const isImage = f.mimeType?.startsWith("image/");
+                  return (
+                    <div
+                      key={f.id}
+                      className="flex flex-col gap-2 rounded-lg border border-border bg-card p-2"
+                    >
+                      <div className="aspect-square w-full overflow-hidden rounded-md bg-muted">
+                        {f.thumbnailLink ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={f.thumbnailLink}
+                            alt={f.name}
+                            className="h-full w-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                            {isImage ? "IMG" : "VIDEO"}
+                          </div>
+                        )}
+                      </div>
+                      <p className="line-clamp-2 text-xs" title={f.name}>
+                        {f.name}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          className="h-7 flex-1 text-xs"
+                          disabled={busy}
+                          onClick={() => importFromDrive([f.id], "media")}
+                        >
+                          {busy ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            "+ Mídia"
+                          )}
+                        </Button>
+                        {type === "video" && isImage && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs"
+                            disabled={busy}
+                            onClick={() => importFromDrive([f.id], "cover")}
+                          >
+                            Capa
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {type === "carousel" && driveFiles.length > 1 && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  importFromDrive(
+                    driveFiles
+                      .filter((f) => f.mimeType?.startsWith("image/"))
+                      .map((f) => f.id),
+                    "media",
+                  )
+                }
+                disabled={importingIds.size > 0}
+              >
+                Importar todas as imagens
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+
 
       {/* Cover - apenas para vídeo */}
       {type === "video" && (
