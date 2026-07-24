@@ -494,25 +494,65 @@ export function PostForm(props: Props) {
         </button>
         {driveOpen && (
           <div className="mt-3 space-y-3">
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Input
-                placeholder="Cole o link da pasta ou arquivo do Drive"
-                value={driveUrl}
-                onChange={(e) => setDriveUrl(e.target.value)}
-              />
-              <Button
+            {/* Breadcrumb */}
+            <div className="flex flex-wrap items-center gap-1 text-xs text-emerald-900">
+              {driveCrumbs.length > 0 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2"
+                  onClick={() => goToCrumb(driveCrumbs.length - 2)}
+                  disabled={driveLoading}
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                </Button>
+              )}
+              <button
                 type="button"
-                variant="outline"
-                onClick={loadDrive}
-                disabled={driveLoading || !driveUrl.trim()}
+                className="inline-flex items-center gap-1 rounded px-2 py-1 hover:bg-emerald-900/10"
+                onClick={() => goToCrumb(-1)}
+                disabled={driveLoading}
               >
-                {driveLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  "Listar arquivos"
-                )}
-              </Button>
+                <Home className="h-3.5 w-3.5" /> Meu Drive
+              </button>
+              {driveCrumbs.map((c, i) => (
+                <span key={c.id} className="inline-flex items-center gap-1">
+                  <ChevronRight className="h-3 w-3 opacity-60" />
+                  <button
+                    type="button"
+                    className="rounded px-2 py-1 hover:bg-emerald-900/10 font-medium"
+                    onClick={() => goToCrumb(i)}
+                    disabled={driveLoading}
+                  >
+                    {c.name}
+                  </button>
+                </span>
+              ))}
+              {driveLoading && (
+                <Loader2 className="ml-2 h-3.5 w-3.5 animate-spin text-emerald-900/70" />
+              )}
             </div>
+
+            {/* Folders */}
+            {driveFolders.length > 0 && (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                {driveFolders.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => enterFolder({ id: f.id, name: f.name })}
+                    disabled={driveLoading}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-card p-2 text-left text-xs hover:border-brand-chartreuse hover:bg-brand-chartreuse-soft/40 disabled:opacity-60"
+                  >
+                    <Folder className="h-4 w-4 shrink-0 text-emerald-700" />
+                    <span className="line-clamp-2" title={f.name}>{f.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Files */}
             {driveFiles.length > 0 && (
               <>
                 <p className="text-xs text-emerald-900/80">
@@ -529,7 +569,6 @@ export function PostForm(props: Props) {
                     >
                       <div className="aspect-square w-full overflow-hidden rounded-md bg-muted">
                         {f.thumbnailLink ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={f.thumbnailLink}
                             alt={f.name}
@@ -578,6 +617,13 @@ export function PostForm(props: Props) {
                 </div>
               </>
             )}
+
+            {!driveLoading && driveFolders.length === 0 && driveFiles.length === 0 && (
+              <p className="text-xs text-emerald-900/70">
+                Esta pasta está vazia (ou não contém imagens/vídeos).
+              </p>
+            )}
+
             {type === "carousel" && driveFiles.length > 1 && (
               <Button
                 type="button"
