@@ -312,19 +312,19 @@ function CalendarView({ posts }: { posts: Post[] }) {
             isSameDay(parseISO(p.scheduled_at), day),
           );
           return (
-            <div
+            <Link
               key={day.toISOString()}
-              className="min-h-[92px] rounded-lg border border-border bg-background p-1.5"
+              to="/dashboard/day/$date"
+              params={{ date: format(day, "yyyy-MM-dd") }}
+              className="min-h-[92px] rounded-lg border border-border bg-background p-1.5 text-left transition hover:border-foreground/30 hover:bg-accent/40"
             >
               <div className="text-[11px] font-medium text-muted-foreground">
                 {format(day, "d")}
               </div>
               <div className="mt-1 space-y-1">
                 {dayPosts.slice(0, 3).map((p) => (
-                  <Link
+                  <div
                     key={p.id}
-                    to="/posts/$postId/edit"
-                    params={{ postId: p.id }}
                     className={`block truncate rounded px-1.5 py-0.5 text-[10px] font-medium ${
                       p.status === "approved"
                         ? "bg-brand-chartreuse-soft text-emerald-700"
@@ -334,7 +334,7 @@ function CalendarView({ posts }: { posts: Post[] }) {
                     }`}
                   >
                     {p.client?.name ?? "post"}
-                  </Link>
+                  </div>
                 ))}
                 {dayPosts.length > 3 && (
                   <div className="text-[10px] text-muted-foreground">
@@ -342,7 +342,7 @@ function CalendarView({ posts }: { posts: Post[] }) {
                   </div>
                 )}
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

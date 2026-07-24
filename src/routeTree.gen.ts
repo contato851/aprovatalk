@@ -21,6 +21,7 @@ import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedClientsClientIdIndexRouteImport } from './routes/_authenticated/clients/$clientId/index'
 import { Route as ApiPublicHooksCleanupMediaRouteImport } from './routes/api/public/hooks/cleanup-media'
 import { Route as AuthenticatedPostsPostIdEditRouteImport } from './routes/_authenticated/posts/$postId/edit'
+import { Route as AuthenticatedDashboardDayDateRouteImport } from './routes/_authenticated/dashboard.day.$date'
 import { Route as AuthenticatedClientsClientIdNewRouteImport } from './routes/_authenticated/clients/$clientId/new'
 
 const AuthRoute = AuthRouteImport.update({
@@ -86,6 +87,12 @@ const AuthenticatedPostsPostIdEditRoute =
     path: '/posts/$postId/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDashboardDayDateRoute =
+  AuthenticatedDashboardDayDateRouteImport.update({
+    id: '/day/$date',
+    path: '/day/$date',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedClientsClientIdNewRoute =
   AuthenticatedClientsClientIdNewRouteImport.update({
     id: '/clients/$clientId/new',
@@ -96,13 +103,14 @@ const AuthenticatedClientsClientIdNewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
+  '/dashboard/day/$date': typeof AuthenticatedDashboardDayDateRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
   '/api/public/hooks/cleanup-media': typeof ApiPublicHooksCleanupMediaRoute
   '/clients/$clientId/': typeof AuthenticatedClientsClientIdIndexRoute
@@ -110,13 +118,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
+  '/dashboard/day/$date': typeof AuthenticatedDashboardDayDateRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
   '/api/public/hooks/cleanup-media': typeof ApiPublicHooksCleanupMediaRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdIndexRoute
@@ -126,13 +135,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/design': typeof AuthenticatedDesignRoute
   '/_authenticated/fluxo': typeof AuthenticatedFluxoRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
+  '/_authenticated/dashboard/day/$date': typeof AuthenticatedDashboardDayDateRoute
   '/_authenticated/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
   '/api/public/hooks/cleanup-media': typeof ApiPublicHooksCleanupMediaRoute
   '/_authenticated/clients/$clientId/': typeof AuthenticatedClientsClientIdIndexRoute
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/c/$token'
     | '/clients/'
     | '/clients/$clientId/new'
+    | '/dashboard/day/$date'
     | '/posts/$postId/edit'
     | '/api/public/hooks/cleanup-media'
     | '/clients/$clientId/'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/c/$token'
     | '/clients'
     | '/clients/$clientId/new'
+    | '/dashboard/day/$date'
     | '/posts/$postId/edit'
     | '/api/public/hooks/cleanup-media'
     | '/clients/$clientId'
@@ -178,6 +190,7 @@ export interface FileRouteTypes {
     | '/c/$token'
     | '/_authenticated/clients/'
     | '/_authenticated/clients/$clientId/new'
+    | '/_authenticated/dashboard/day/$date'
     | '/_authenticated/posts/$postId/edit'
     | '/api/public/hooks/cleanup-media'
     | '/_authenticated/clients/$clientId/'
@@ -277,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPostsPostIdEditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/day/$date': {
+      id: '/_authenticated/dashboard/day/$date'
+      path: '/day/$date'
+      fullPath: '/dashboard/day/$date'
+      preLoaderRoute: typeof AuthenticatedDashboardDayDateRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/clients/$clientId/new': {
       id: '/_authenticated/clients/$clientId/new'
       path: '/clients/$clientId/new'
@@ -287,8 +307,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardDayDateRoute: typeof AuthenticatedDashboardDayDateRoute
+}
+
+const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
+  {
+    AuthenticatedDashboardDayDateRoute: AuthenticatedDashboardDayDateRoute,
+  }
+
+const AuthenticatedDashboardRouteWithChildren =
+  AuthenticatedDashboardRoute._addFileChildren(
+    AuthenticatedDashboardRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedDesignRoute: typeof AuthenticatedDesignRoute
   AuthenticatedFluxoRoute: typeof AuthenticatedFluxoRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
@@ -299,7 +333,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedDesignRoute: AuthenticatedDesignRoute,
   AuthenticatedFluxoRoute: AuthenticatedFluxoRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
