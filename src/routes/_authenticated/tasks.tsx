@@ -220,13 +220,22 @@ function TasksPage() {
                       status: t.status === "done" ? "pending" : "done",
                     })
                   }
-                  className="mt-0.5"
-                  title={t.status === "done" ? "Reabrir tarefa" : "Concluir tarefa"}
+                  disabled={statusMut.isPending}
+                  className={`mt-0.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+                    t.status === "done"
+                      ? "border-green-600/40 bg-green-600/10 text-green-700 hover:bg-green-600/20"
+                      : "border-border text-muted-foreground hover:border-green-600/40 hover:bg-green-600/10 hover:text-green-700"
+                  }`}
+                  title={t.status === "done" ? "Reabrir tarefa" : "Marcar como concluída"}
                 >
                   {t.status === "done" ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <>
+                      <CheckCircle2 className="h-4 w-4" /> Concluída
+                    </>
                   ) : (
-                    <Circle className="h-5 w-5 text-muted-foreground" />
+                    <>
+                      <Circle className="h-4 w-4" /> Concluir
+                    </>
                   )}
                 </button>
                 <div className="min-w-0">
