@@ -199,8 +199,8 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
   const monthLabel = format(cursor, "MMMM yyyy", { locale: ptBR });
 
   return (
-    <div className="flex flex-col rounded-3xl border border-border bg-card overflow-hidden">
-      <header className="bg-foreground text-background">
+    <div className="flex flex-col rounded-3xl border border-[#1844ee]/50 bg-[#1844ee] overflow-hidden">
+      <header className="bg-[#1844ee] text-white">
         <div className="px-5 py-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
