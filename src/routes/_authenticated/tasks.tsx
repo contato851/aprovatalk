@@ -67,6 +67,7 @@ type Task = {
   completed_by: string | null;
   completed_by_name: string | null;
   completed_at: string | null;
+  created_by: string | null;
 };
 
 type Filter = "all" | "pending" | "done";
