@@ -531,7 +531,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
         {loading && <p className="mt-4 text-xs text-muted-foreground">Carregando…</p>}
       </main>
 
-      <footer className="border-t border-border bg-muted/30">
+      <footer className="border-t border-black/10 bg-black/5">
         <div className="px-5 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-5 text-sm">
             <Counter label="Concluídas" value={done} dotClass="bg-emerald-500" />
