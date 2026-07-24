@@ -47,6 +47,41 @@ export type Database = {
         }
         Relationships: []
       }
+      post_adjustment_points: {
+        Row: {
+          created_at: string
+          frame_url: string | null
+          id: string
+          note: string
+          post_id: string
+          time_seconds: number
+        }
+        Insert: {
+          created_at?: string
+          frame_url?: string | null
+          id?: string
+          note?: string
+          post_id: string
+          time_seconds: number
+        }
+        Update: {
+          created_at?: string
+          frame_url?: string | null
+          id?: string
+          note?: string
+          post_id?: string
+          time_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_adjustment_points_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_media: {
         Row: {
           created_at: string
