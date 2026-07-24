@@ -495,7 +495,11 @@ export function PostForm(props: Props) {
               </Button>
             </div>
             {driveFiles.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              <>
+                <p className="text-xs text-emerald-900/80">
+                  ⬇️ Clique em <strong>Adicionar ao post</strong> em cada arquivo que quiser usar. O tipo do post é ajustado automaticamente (vídeo → Reels, várias imagens → Carrossel).
+                </p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 {driveFiles.map((f) => {
                   const busy = importingIds.has(f.id);
                   const isImage = f.mimeType?.startsWith("image/");
@@ -526,15 +530,14 @@ export function PostForm(props: Props) {
                         <Button
                           type="button"
                           size="sm"
-                          variant="secondary"
-                          className="h-7 flex-1 text-xs"
+                          className="h-8 flex-1 bg-brand-orange text-xs text-white hover:bg-brand-orange/90"
                           disabled={busy}
                           onClick={() => importFromDrive([f.id], "media")}
                         >
                           {busy ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
-                            "+ Mídia"
+                            "Adicionar ao post"
                           )}
                         </Button>
                         {type === "video" && isImage && (
@@ -542,7 +545,7 @@ export function PostForm(props: Props) {
                             type="button"
                             size="sm"
                             variant="outline"
-                            className="h-7 text-xs"
+                            className="h-8 text-xs"
                             disabled={busy}
                             onClick={() => importFromDrive([f.id], "cover")}
                           >
@@ -553,7 +556,8 @@ export function PostForm(props: Props) {
                     </div>
                   );
                 })}
-              </div>
+                </div>
+              </>
             )}
             {type === "carousel" && driveFiles.length > 1 && (
               <Button
