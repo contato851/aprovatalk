@@ -56,9 +56,47 @@ function EditPostPage() {
           <div className="text-xs font-semibold uppercase tracking-wide text-brand-purple">
             Comentário do cliente
           </div>
-          <p className="mt-1 text-sm text-brand-purple">{post.client_comment}</p>
+          <p className="mt-1 whitespace-pre-line text-sm text-brand-purple">{post.client_comment}</p>
         </div>
       )}
+
+      {post.type === "video" && (post.adjustment_points ?? []).length > 0 && (
+        <div className="mt-6 rounded-xl border border-brand-orange/30 bg-brand-orange-soft p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-brand-orange">
+            Pontos de ajuste ({post.adjustment_points.length})
+          </div>
+          <ul className="mt-3 space-y-3">
+            {post.adjustment_points.map((pt: any) => {
+              const s = Math.max(0, Math.floor(Number(pt.time_seconds)));
+              const mm = String(Math.floor(s / 60)).padStart(2, "0");
+              const ss = String(s % 60).padStart(2, "0");
+              return (
+                <li
+                  key={pt.id}
+                  className="flex gap-3 rounded-lg border border-brand-orange/20 bg-background p-2"
+                >
+                  {pt.frame_signed_url ? (
+                    <img
+                      src={pt.frame_signed_url}
+                      alt=""
+                      className="h-20 w-20 shrink-0 rounded-md border border-border object-cover"
+                    />
+                  ) : (
+                    <div className="h-20 w-20 shrink-0 rounded-md bg-muted" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold text-brand-orange">
+                      {mm}:{ss}
+                    </div>
+                    <p className="mt-0.5 whitespace-pre-line text-sm">{pt.note}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
 
       <div className="mt-8">
         <PostForm

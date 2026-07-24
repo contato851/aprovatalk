@@ -6,7 +6,9 @@ const BUCKETS = {
   avatars: "avatars",
   media: "post-media",
   covers: "post-covers",
+  frames: "adjustment-frames",
 } as const;
+
 
 const SIGNED_URL_TTL = 60 * 60 * 24 * 30; // 30 dias
 
@@ -181,8 +183,9 @@ export const getPost = createServerFn({ method: "GET" })
     const { data: post, error } = await context.supabase
       .from("posts")
       .select(
-        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind)",
+        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind), adjustment_points:post_adjustment_points(id, time_seconds, note, frame_url, created_at)",
       )
+
       .eq("id", data.id)
       .single();
     if (error) throw error;
@@ -354,12 +357,24 @@ async function enrichPost(supabase: any, post: any) {
   const client_avatar_signed_url = post.client?.avatar_url
     ? await signStoragePath(supabase, BUCKETS.avatars, post.client.avatar_url)
     : null;
+  const points = await Promise.all(
+    [...(post.adjustment_points ?? [])]
+      .sort((a: any, b: any) => a.time_seconds - b.time_seconds)
+      .map(async (pt: any) => ({
+        ...pt,
+        frame_signed_url: pt.frame_url
+          ? await signStoragePath(supabase, BUCKETS.frames, pt.frame_url)
+          : null,
+      })),
+  );
   return {
     ...post,
     media,
     cover_signed_url,
+    adjustment_points: points,
     client: post.client
       ? { ...post.client, avatar_signed_url: client_avatar_signed_url }
       : null,
   };
 }
+
