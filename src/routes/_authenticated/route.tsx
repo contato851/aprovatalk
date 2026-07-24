@@ -107,6 +107,7 @@ function AuthenticatedLayout() {
               >
                 Calendário
               </Link>
+            )}
             {isAdmin && (
               <Link
                 to="/tasks"
