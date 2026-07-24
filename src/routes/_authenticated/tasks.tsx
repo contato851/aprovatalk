@@ -327,16 +327,17 @@ function TasksPage() {
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
-                <button
-                  onClick={() => {
-                    if (confirm("Excluir esta tarefa?")) deleteMut.mutate(t.id);
-                  }}
-                  className="rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  title="Excluir"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
+                {currentUserId && t.created_by === currentUserId && (
+                  <button
+                    onClick={() => {
+                      if (confirm("Excluir esta tarefa?")) deleteMut.mutate(t.id);
+                    }}
+                    className="rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    title="Excluir"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
             </div>
           );
         })}
