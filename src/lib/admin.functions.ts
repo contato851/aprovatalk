@@ -395,8 +395,8 @@ export const releasePostForApproval = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .single();
     if (error) throw error;
-    if (post.status !== "planning") {
-      throw new Error("Este post não está em planejamento.");
+    if (post.status !== "planning" && post.status !== "ready_for_review") {
+      throw new Error("Este post não pode ser liberado neste status.");
     }
 
     const missing: string[] = [];
