@@ -170,9 +170,23 @@ export function PostForm(props: Props) {
           previewUrl: r.signed_url ?? "",
           kind: r.kind,
         }));
-        if (type === "static" || type === "video") setMedia(newSlots.slice(0, 1));
-        else setMedia((prev) => [...prev, ...newSlots]);
-        toast.success(`${res.length} arquivo(s) importado(s).`);
+        // Auto-ajusta o tipo do post conforme o que foi importado
+        const hasVideo = newSlots.some((s) => s.kind === "video");
+        const imageCount = newSlots.filter((s) => s.kind === "image").length;
+        let effectiveType = type;
+        if (hasVideo) {
+          effectiveType = "video";
+          setType("video");
+        } else if (imageCount > 1 && type === "static") {
+          effectiveType = "carousel";
+          setType("carousel");
+        }
+        if (effectiveType === "static" || effectiveType === "video") {
+          setMedia(newSlots.slice(0, 1));
+        } else {
+          setMedia((prev) => [...prev, ...newSlots]);
+        }
+        toast.success(`${res.length} arquivo(s) adicionado(s) ao post.`);
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao importar do Drive");
