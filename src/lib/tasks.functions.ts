@@ -35,7 +35,7 @@ export const listTeamMembers = createServerFn({ method: "GET" })
       const nameFromEmail = email.split("@")[0];
       const name = (nameFromMeta || nameFromEmail || "Usuário")
         .toString()
-        .replace(/^./, (c) => c.toUpperCase());
+        .replace(/^./, (c: string) => c.toUpperCase());
       members.push({ id: id as string, name, email });
     }
     members.sort((a, b) => a.name.localeCompare(b.name));
