@@ -34,6 +34,15 @@ import {
 } from "@/components/ui/select";
 import { CheckCircle2, Circle, Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import biaAvatar from "@/assets/team/bia.jpg.asset.json";
+import johnnyAvatar from "@/assets/team/johnny.jpg.asset.json";
+import diandraAvatar from "@/assets/team/diandra.jpg.asset.json";
+
+const AVATAR_BY_EMAIL: Record<string, string> = {
+  "bia@talk.local": biaAvatar.url,
+  "johnny@talk.local": johnnyAvatar.url,
+  "diandra@talk.local": diandraAvatar.url,
+};
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({
