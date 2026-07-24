@@ -17,14 +17,14 @@ export const listTeamMembers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<TeamMember[]> => {
     await assertAdmin(context);
-    const { data: roles, error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roles, error } = await supabaseAdmin
       .from("user_roles")
       .select("user_id")
       .eq("role", "admin");
     if (error) throw error;
     const ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id)));
     if (ids.length === 0) return [];
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const members: TeamMember[] = [];
     for (const id of ids) {
       const { data: u } = await supabaseAdmin.auth.admin.getUserById(id as string);
