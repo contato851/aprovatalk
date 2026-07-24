@@ -30,7 +30,7 @@ export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
 });
 
-type Tab = "pending" | "approved" | "rejected";
+type Tab = "planning" | "pending" | "approved" | "rejected";
 
 function ClientFeed() {
   const { token } = Route.useParams();
