@@ -291,8 +291,8 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
   const monthLabel = format(cursor, "MMMM yyyy", { locale: ptBR });
 
   return (
-    <div className="flex flex-col rounded-3xl border border-border bg-card overflow-hidden">
-      <header className="bg-foreground text-background">
+    <div className="flex flex-col rounded-3xl border border-black/10 bg-[#e6fb53] overflow-hidden">
+      <header className="bg-[#e6fb53] text-foreground">
         <div className="px-5 py-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
