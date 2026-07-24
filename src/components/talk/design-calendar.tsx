@@ -333,7 +333,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                     "relative shrink-0 h-10 w-10 rounded-xl text-sm font-medium transition",
                     active
                       ? "bg-background text-foreground shadow-sm"
-                      : "bg-white/10 text-background hover:bg-white/20",
+                      : "bg-black/10 text-foreground hover:bg-black/20",
                   )}
                 >
                   {format(d, "d")}
