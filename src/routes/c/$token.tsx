@@ -25,12 +25,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TalkStar } from "@/components/talk/star";
+import { FluxoCalendar } from "@/components/talk/fluxo-calendar";
 
 export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
 });
 
-type Tab = "planning" | "pending" | "approved" | "rejected";
+type Tab = "planning" | "pending" | "approved" | "rejected" | "fluxo";
 
 function ClientFeed() {
   const { token } = Route.useParams();
@@ -100,6 +101,7 @@ function ClientFeed() {
               { v: "pending", l: "Pendentes" },
               { v: "approved", l: "Aprovados" },
               { v: "rejected", l: "Reprovados" },
+              { v: "fluxo", l: "Fluxo" },
             ] as { v: Tab; l: string }[]
           ).map((t) => (
             <button
@@ -117,30 +119,36 @@ function ClientFeed() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-md space-y-8 px-4 py-6">
-        {filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
-            <TalkStar className="mx-auto h-8 w-8 text-brand-chartreuse" />
-            <p className="mt-3 text-sm text-muted-foreground">
-              {tab === "planning"
-                ? "Nenhum post em produção no momento."
-                : tab === "pending"
-                  ? "Nada pendente por aqui."
-                  : tab === "approved"
-                    ? "Você ainda não aprovou nenhum post."
-                    : "Nenhum post reprovado."}
-            </p>
-          </div>
-        ) : tab === "planning" ? (
-          filtered.map((p: any) => (
-            <PlanningFeedCard key={p.id} post={p} client={client} />
-          ))
-        ) : (
-          filtered.map((p: any) => (
-            <FeedCard key={p.id} post={p} client={client} token={token} readOnly={tab !== "pending"} />
-          ))
-        )}
-      </div>
+      {tab === "fluxo" ? (
+        <div className="mx-auto max-w-md px-4 py-6">
+          <FluxoCalendar readOnly />
+        </div>
+      ) : (
+        <div className="mx-auto max-w-md space-y-8 px-4 py-6">
+          {filtered.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+              <TalkStar className="mx-auto h-8 w-8 text-brand-chartreuse" />
+              <p className="mt-3 text-sm text-muted-foreground">
+                {tab === "planning"
+                  ? "Nenhum post em produção no momento."
+                  : tab === "pending"
+                    ? "Nada pendente por aqui."
+                    : tab === "approved"
+                      ? "Você ainda não aprovou nenhum post."
+                      : "Nenhum post reprovado."}
+              </p>
+            </div>
+          ) : tab === "planning" ? (
+            filtered.map((p: any) => (
+              <PlanningFeedCard key={p.id} post={p} client={client} />
+            ))
+          ) : (
+            filtered.map((p: any) => (
+              <FeedCard key={p.id} post={p} client={client} token={token} readOnly={tab !== "pending"} />
+            ))
+          )}
+        </div>
+      )}
     </main>
   );
 }
