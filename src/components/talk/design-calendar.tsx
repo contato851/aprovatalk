@@ -320,7 +320,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
             </div>
           </div>
 
-          <div className="mt-5 -mx-1 flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:thin]">
+          <div className="mt-5 -mx-1 flex gap-1.5 overflow-x-auto pb-4 [scrollbar-width:thin]">
             {days.map((d) => {
               const active = isSameDay(d, selectedDay);
               const has = dayHasData(d);
