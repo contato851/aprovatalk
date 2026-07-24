@@ -248,11 +248,16 @@ export const createPost = createServerFn({ method: "POST" })
         cover_path: z.string().nullable().optional(),
         media: z.array(mediaItem).default([]),
         status: z.enum(["planning", "pending"]).default("pending"),
+        linked_design_slot_id: z.string().uuid().nullable().optional(),
+        linked_delivery_slot_id: z.string().uuid().nullable().optional(),
       })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
+    if (data.linked_design_slot_id && data.linked_delivery_slot_id) {
+      throw new Error("Vincule a apenas uma entrega (Design ou Edição).");
+    }
     if (data.status === "pending") {
       if (data.media.length === 0) throw new Error("Envie ao menos uma mídia.");
       if (data.type === "video" && !data.cover_path) {
@@ -270,6 +275,8 @@ export const createPost = createServerFn({ method: "POST" })
         status: data.status,
         client_comment: null,
         responded_at: null,
+        linked_design_slot_id: data.linked_design_slot_id ?? null,
+        linked_delivery_slot_id: data.linked_delivery_slot_id ?? null,
       })
       .select("*")
       .single();
@@ -290,7 +297,7 @@ export const createPost = createServerFn({ method: "POST" })
 
 /**
  * Atualiza post + substitui mídia.
- * - Se o post estiver em "planning", permanece em "planning".
+ * - Se o post estiver em "planning" ou "ready_for_review", mantém o status.
  * - Caso contrário, volta para "pending" (mantém o fluxo atual de reedição).
  */
 export const updatePost = createServerFn({ method: "POST" })
@@ -304,11 +311,16 @@ export const updatePost = createServerFn({ method: "POST" })
         scheduled_at: z.string(),
         cover_path: z.string().nullable().optional(),
         media: z.array(mediaItem).default([]),
+        linked_design_slot_id: z.string().uuid().nullable().optional(),
+        linked_delivery_slot_id: z.string().uuid().nullable().optional(),
       })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
+    if (data.linked_design_slot_id && data.linked_delivery_slot_id) {
+      throw new Error("Vincule a apenas uma entrega (Design ou Edição).");
+    }
 
     const { data: existing, error: exErr } = await context.supabase
       .from("posts")
@@ -317,26 +329,33 @@ export const updatePost = createServerFn({ method: "POST" })
       .single();
     if (exErr) throw exErr;
 
-    const keepPlanning = existing.status === "planning";
-    const nextStatus = keepPlanning ? "planning" : "pending";
+    const keepStatus =
+      existing.status === "planning" || existing.status === "ready_for_review";
+    const nextStatus = keepStatus ? existing.status : "pending";
 
-    if (!keepPlanning) {
+    if (!keepStatus) {
       if (data.media.length === 0) throw new Error("Envie ao menos uma mídia.");
       if (data.type === "video" && !data.cover_path) {
         throw new Error("Vídeo requer capa.");
       }
     }
 
+    const patch: any = {
+      type: data.type,
+      caption: data.caption,
+      scheduled_at: data.scheduled_at,
+      cover_url: data.cover_path ?? null,
+      status: nextStatus,
+      responded_at: null,
+    };
+    if (data.linked_design_slot_id !== undefined)
+      patch.linked_design_slot_id = data.linked_design_slot_id;
+    if (data.linked_delivery_slot_id !== undefined)
+      patch.linked_delivery_slot_id = data.linked_delivery_slot_id;
+
     const { error: uErr } = await context.supabase
       .from("posts")
-      .update({
-        type: data.type,
-        caption: data.caption,
-        scheduled_at: data.scheduled_at,
-        cover_url: data.cover_path ?? null,
-        status: nextStatus,
-        responded_at: null,
-      })
+      .update(patch)
       .eq("id", data.id);
     if (uErr) throw uErr;
 
