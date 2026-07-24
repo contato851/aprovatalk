@@ -114,7 +114,9 @@ export const importDriveFiles = createServerFn({ method: "POST" })
       path: string;
       kind: "image" | "video";
       mimeType: string;
+      signed_url: string | null;
     }[] = [];
+
 
     for (const fileId of data.fileIds) {
       // metadata
