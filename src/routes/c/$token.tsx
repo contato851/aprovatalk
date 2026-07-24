@@ -30,7 +30,7 @@ export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
 });
 
-type Tab = "pending" | "approved" | "rejected";
+type Tab = "planning" | "pending" | "approved" | "rejected";
 
 function ClientFeed() {
   const { token } = Route.useParams();
@@ -93,9 +93,10 @@ function ClientFeed() {
           </div>
         </div>
 
-        <div className="mx-auto flex max-w-md gap-1 px-5 pb-3">
+        <div className="mx-auto flex max-w-md gap-1 px-5 pb-3 overflow-x-auto">
           {(
             [
+              { v: "planning", l: "Planejamento" },
               { v: "pending", l: "Pendentes" },
               { v: "approved", l: "Aprovados" },
               { v: "rejected", l: "Reprovados" },
@@ -104,7 +105,7 @@ function ClientFeed() {
             <button
               key={t.v}
               onClick={() => setTab(t.v)}
-              className={`flex-1 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${
                 tab === t.v
                   ? "bg-foreground text-background"
                   : "text-muted-foreground hover:text-foreground"
@@ -121,13 +122,17 @@ function ClientFeed() {
           <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
             <TalkStar className="mx-auto h-8 w-8 text-brand-chartreuse" />
             <p className="mt-3 text-sm text-muted-foreground">
-              {tab === "pending"
-                ? "Nada pendente por aqui."
-                : tab === "approved"
-                  ? "Você ainda não aprovou nenhum post."
-                  : "Nenhum post reprovado."}
+              {tab === "planning"
+                ? "Nenhum post em produção no momento."
+                : tab === "pending"
+                  ? "Nada pendente por aqui."
+                  : tab === "approved"
+                    ? "Você ainda não aprovou nenhum post."
+                    : "Nenhum post reprovado."}
             </p>
           </div>
+        ) : tab === "planning" ? (
+          <PlanningList posts={filtered} />
         ) : (
           filtered.map((p: any) => (
             <FeedCard key={p.id} post={p} client={client} token={token} readOnly={tab !== "pending"} />
@@ -135,6 +140,49 @@ function ClientFeed() {
         )}
       </div>
     </main>
+  );
+}
+
+function PlanningList({ posts }: { posts: any[] }) {
+  return (
+    <ul className="space-y-3">
+      {posts.map((p) => {
+        const thumb =
+          p.cover_signed_url ??
+          (p.media?.[0]?.kind === "image" ? p.media[0].signed_url : null);
+        return (
+          <li
+            key={p.id}
+            className="flex gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm"
+          >
+            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
+              {thumb ? (
+                <img src={thumb} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-[9px] uppercase tracking-wider text-muted-foreground">
+                  Sem mídia
+                </div>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-brand-chartreuse-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-800">
+                  Em produção
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {format(parseISO(p.scheduled_at), "dd 'de' MMM · HH'h'mm", {
+                    locale: ptBR,
+                  })}
+                </span>
+              </div>
+              <p className="mt-1.5 line-clamp-3 text-sm text-foreground/90 whitespace-pre-line">
+                {p.caption || <span className="text-muted-foreground">—</span>}
+              </p>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

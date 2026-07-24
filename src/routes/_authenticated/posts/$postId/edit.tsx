@@ -103,10 +103,11 @@ function EditPostPage() {
           mode="edit"
           postId={postId}
           initial={post}
-          onSaved={() =>
+          onSaved={(status) =>
             navigate({
               to: "/clients/$clientId",
               params: { clientId: post.client.id },
+              search: { tab: status === "planning" ? "planning" : "approval" },
             })
           }
         />
