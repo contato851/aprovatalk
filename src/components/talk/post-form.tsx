@@ -404,6 +404,71 @@ export function PostForm(props: Props) {
         />
       </div>
 
+      {/* Vínculo com entrega — só para rascunhos */}
+      {isDraft && (
+        <div className="rounded-2xl border border-dashed border-brand-purple/40 bg-brand-purple-soft/40 p-4">
+          <Label className="flex items-center gap-2 text-brand-purple">
+            <Link2 className="h-4 w-4" /> Vincular a uma entrega
+          </Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Quando o designer/editor marcar a entrega como concluída, este post sobe automaticamente para <strong>Pronto para revisão</strong>.
+          </p>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {(
+              [
+                { v: "none", l: "Nenhuma" },
+                { v: "design", l: "🎨 Design" },
+                { v: "delivery", l: "🎬 Edição" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() => {
+                  setLinkKind(opt.v);
+                  if (opt.v === "none") setLinkedSlotId(null);
+                  else if (opt.v !== initialLinkKind) setLinkedSlotId(null);
+                }}
+                className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                  linkKind === opt.v
+                    ? "border-brand-purple bg-brand-purple text-white"
+                    : "border-border bg-card hover:bg-accent"
+                }`}
+              >
+                {opt.l}
+              </button>
+            ))}
+          </div>
+          {linkKind !== "none" && (
+            <div className="mt-3">
+              <select
+                value={linkedSlotId ?? ""}
+                onChange={(e) => setLinkedSlotId(e.target.value || null)}
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
+              >
+                <option value="">
+                  {loadingSlots ? "Carregando…" : "Selecione uma entrega…"}
+                </option>
+                {slotOptions.map((s: any) => {
+                  const label = `${format(parseISO(s.slot_date), "dd/MM (EEE)", { locale: ptBR })} · #${s.slot_index + 1} — ${s.title || s.client || "(sem título)"}${s.done ? " ✓" : ""}`;
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
+              {!loadingSlots && slotOptions.length === 0 && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Nenhuma entrega disponível. Crie um slot na aba {linkKind === "design" ? "Design" : "Edição"} primeiro.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+
       {/* Scheduled */}
       <div>
         <Label>Data e hora programadas</Label>
