@@ -220,6 +220,8 @@ function PlanningFeedCard({ post, client }: { post: any; client: any }) {
     </article>
   );
 }
+
+function FeedCard({
   post,
   client,
   token,
