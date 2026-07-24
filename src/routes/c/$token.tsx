@@ -1,17 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
+  addAdjustmentPointByToken,
   approvePostByToken,
+  createAdjustmentFrameUploadUrl,
+  deleteAdjustmentPointByToken,
   getClientPortal,
   rejectPostByToken,
 } from "@/lib/client-portal.functions";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight, Check, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, X, MessageSquarePlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -146,11 +149,34 @@ function FeedCard({
   token: string;
   readOnly: boolean;
 }) {
+  const queryClient = useQueryClient();
   const approveFn = useServerFn(approvePostByToken);
   const rejectFn = useServerFn(rejectPostByToken);
+  const addPointFn = useServerFn(addAdjustmentPointByToken);
+  const deletePointFn = useServerFn(deleteAdjustmentPointByToken);
+  const createUploadFn = useServerFn(createAdjustmentFrameUploadUrl);
+
   const [rejectOpen, setRejectOpen] = useState(false);
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [pointDraft, setPointDraft] = useState<
+    | {
+        time_seconds: number;
+        note: string;
+        frame_data_url: string;
+        frame_blob: Blob;
+      }
+    | null
+  >(null);
+
+  const points: any[] = post.adjustment_points ?? [];
+  const isVideo = post.type === "video";
+
+  function invalidate() {
+    queryClient.invalidateQueries({ queryKey: ["client-portal", token] });
+  }
 
   async function approve() {
     setBusy(true);
@@ -161,7 +187,7 @@ function FeedCard({
         `Aprovado! Este post será publicado em ${format(dt, "dd/MM 'às' HH'h'", { locale: ptBR })}.`,
         { duration: 6000 },
       );
-      window.location.reload();
+      invalidate();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro");
     } finally {
@@ -170,13 +196,15 @@ function FeedCard({
   }
 
   async function reject() {
-    if (!comment.trim()) return toast.error("Deixe seu comentário.");
+    if (!comment.trim() && points.length === 0) {
+      return toast.error("Deixe um comentário ou marque um ponto de ajuste.");
+    }
     setBusy(true);
     try {
       await rejectFn({ data: { token, postId: post.id, comment } });
       toast.success("Reprovação enviada à Talk.");
       setRejectOpen(false);
-      window.location.reload();
+      invalidate();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro");
     } finally {
@@ -184,9 +212,91 @@ function FeedCard({
     }
   }
 
+  async function captureFrame() {
+    const v = videoRef.current;
+    if (!v) return;
+    if (!v.videoWidth || !v.videoHeight) {
+      return toast.error("Aguarde o vídeo carregar antes de marcar.");
+    }
+    try {
+      v.pause();
+    } catch {}
+    const canvas = document.createElement("canvas");
+    canvas.width = v.videoWidth;
+    canvas.height = v.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    try {
+      ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+    } catch {
+      return toast.error("Não foi possível capturar o frame.");
+    }
+    const blob: Blob | null = await new Promise((resolve) =>
+      canvas.toBlob((b) => resolve(b), "image/jpeg", 0.85),
+    );
+    if (!blob) return toast.error("Falha ao gerar imagem do frame.");
+    const frame_data_url = canvas.toDataURL("image/jpeg", 0.85);
+    setPointDraft({
+      time_seconds: v.currentTime,
+      note: "",
+      frame_data_url,
+      frame_blob: blob,
+    });
+  }
+
+  async function savePoint() {
+    if (!pointDraft) return;
+    if (!pointDraft.note.trim()) return toast.error("Escreva o que precisa ajustar.");
+    setBusy(true);
+    try {
+      const up = await createUploadFn({ data: { token, postId: post.id } });
+      const putRes = await fetch(up.signedUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "image/jpeg" },
+        body: pointDraft.frame_blob,
+      });
+      if (!putRes.ok) throw new Error("Falha ao enviar frame.");
+      await addPointFn({
+        data: {
+          token,
+          postId: post.id,
+          time_seconds: pointDraft.time_seconds,
+          note: pointDraft.note,
+          frame_path: up.path,
+        },
+      });
+      toast.success("Ponto de ajuste salvo.");
+      setPointDraft(null);
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao salvar ponto.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removePoint(pointId: string) {
+    if (!confirm("Remover este ponto de ajuste?")) return;
+    setBusy(true);
+    try {
+      await deletePointFn({ data: { token, pointId } });
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function seekTo(t: number) {
+    const v = videoRef.current;
+    if (!v) return;
+    v.currentTime = t;
+    v.pause();
+  }
+
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      {/* Instagram-style header */}
       <div className="flex items-center gap-2.5 px-4 py-3">
         {client.avatar_signed_url ? (
           <img
@@ -205,11 +315,85 @@ function FeedCard({
         </div>
       </div>
 
-      {/* Media */}
-      {post.midia_arquivada ? <ArchivedPlaceholder /> : <MediaViewer post={post} />}
+      {post.midia_arquivada ? (
+        <ArchivedPlaceholder />
+      ) : (
+        <MediaViewer post={post} videoRef={videoRef} />
+      )}
 
+      {isVideo && !post.midia_arquivada && !readOnly && (
+        <div className="border-t border-border px-4 py-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={captureFrame}
+            disabled={busy}
+            className="w-full gap-2 border-brand-orange/40 text-brand-orange hover:bg-brand-orange-soft"
+          >
+            <MessageSquarePlus className="h-4 w-4" />
+            Marcar ponto de ajuste
+          </Button>
+          <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+            Pause o vídeo no instante desejado e toque para capturar o frame e escrever a observação.
+          </p>
+        </div>
+      )}
 
-      {/* Sections: cover + caption */}
+      {isVideo && points.length > 0 && (
+        <section className="border-t border-border px-4 py-4">
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Pontos de ajuste ({points.length})
+          </div>
+          <ul className="space-y-3">
+            {points.map((pt) => (
+              <li
+                key={pt.id}
+                className="flex gap-3 rounded-lg border border-border bg-background/60 p-2"
+              >
+                {pt.frame_signed_url ? (
+                  <button
+                    type="button"
+                    onClick={() => seekTo(Number(pt.time_seconds))}
+                    className="block h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted"
+                    title="Ir para este instante"
+                  >
+                    <img
+                      src={pt.frame_signed_url}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ) : (
+                  <div className="h-16 w-16 shrink-0 rounded-md bg-muted" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    onClick={() => seekTo(Number(pt.time_seconds))}
+                    className="text-[11px] font-semibold text-brand-orange hover:underline"
+                  >
+                    {formatMMSS(Number(pt.time_seconds))}
+                  </button>
+                  <p className="mt-0.5 whitespace-pre-line text-sm text-foreground/90">
+                    {pt.note}
+                  </p>
+                </div>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    onClick={() => removePoint(pt.id)}
+                    className="self-start rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
+                    aria-label="Remover ponto"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <div className="space-y-4 border-t border-border p-4">
         {post.cover_signed_url && !post.midia_arquivada && (
           <section>
@@ -237,12 +421,13 @@ function FeedCard({
             <div className="text-[10px] font-semibold uppercase tracking-wide text-brand-purple">
               Seu comentário
             </div>
-            <p className="mt-1 text-sm text-brand-purple">{post.client_comment}</p>
+            <p className="mt-1 whitespace-pre-line text-sm text-brand-purple">
+              {post.client_comment}
+            </p>
           </section>
         )}
       </div>
 
-      {/* Actions */}
       {!readOnly && (
         <div className="grid grid-cols-2 gap-2 border-t border-border p-3">
           <Button
@@ -263,15 +448,70 @@ function FeedCard({
         </div>
       )}
 
+      {/* Diálogo de captura de frame */}
+      <Dialog open={!!pointDraft} onOpenChange={(o) => !o && setPointDraft(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Ponto de ajuste{" "}
+              {pointDraft && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  · {formatMMSS(pointDraft.time_seconds)}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {pointDraft && (
+            <div className="space-y-3">
+              <img
+                src={pointDraft.frame_data_url}
+                alt=""
+                className="w-full rounded-md border border-border"
+              />
+              <Textarea
+                value={pointDraft.note}
+                onChange={(e) =>
+                  setPointDraft({ ...pointDraft, note: e.target.value })
+                }
+                placeholder="O que precisa ser ajustado neste instante?"
+                className="min-h-[100px]"
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPointDraft(null)} disabled={busy}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={savePoint}
+              disabled={busy}
+              className="bg-brand-orange text-white hover:bg-brand-orange/90"
+            >
+              Salvar ponto
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de reprovação */}
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Deixe seu comentário</DialogTitle>
           </DialogHeader>
+          {isVideo && points.length > 0 && (
+            <div className="rounded-lg bg-brand-orange-soft p-3 text-xs text-brand-orange">
+              Os {points.length} ponto{points.length > 1 ? "s" : ""} de ajuste marcado{points.length > 1 ? "s" : ""} serão enviados junto com esta reprovação.
+            </div>
+          )}
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="O que precisa ser ajustado?"
+            placeholder={
+              isVideo && points.length > 0
+                ? "Comentário geral (opcional)"
+                : "O que precisa ser ajustado?"
+            }
             className="min-h-[120px]"
           />
           <DialogFooter>
@@ -292,6 +532,13 @@ function FeedCard({
   );
 }
 
+function formatMMSS(total: number) {
+  const s = Math.max(0, Math.floor(total));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+}
+
 function ArchivedPlaceholder() {
   return (
     <div className="flex aspect-[4/5] flex-col items-center justify-center bg-muted/60 text-muted-foreground">
@@ -300,9 +547,13 @@ function ArchivedPlaceholder() {
   );
 }
 
-
-
-function MediaViewer({ post }: { post: any }) {
+function MediaViewer({
+  post,
+  videoRef,
+}: {
+  post: any;
+  videoRef?: React.MutableRefObject<HTMLVideoElement | null>;
+}) {
   const [emblaRef, embla] = useEmblaCarousel({ loop: false });
   const [idx, setIdx] = useState(0);
 
@@ -323,9 +574,14 @@ function MediaViewer({ post }: { post: any }) {
       <div className="relative aspect-[9/16] bg-black">
         {v?.signed_url && (
           <video
+            ref={(el) => {
+              if (videoRef) videoRef.current = el;
+            }}
             src={v.signed_url}
             poster={post.cover_signed_url ?? undefined}
             controls
+            crossOrigin="anonymous"
+            playsInline
             className="h-full w-full object-contain"
           />
         )}
@@ -344,7 +600,6 @@ function MediaViewer({ post }: { post: any }) {
     );
   }
 
-  // carousel
   return (
     <div className="relative">
       <div className="overflow-hidden" ref={emblaRef}>
