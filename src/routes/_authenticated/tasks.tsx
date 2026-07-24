@@ -212,14 +212,16 @@ function TasksPage() {
         )}
         {filtered.map((t) => {
           const overdue = isOverdue(t);
+          const rowClass =
+            t.status === "done"
+              ? "border-green-500/30 bg-green-500/10"
+              : overdue
+                ? "border-red-500/30 bg-red-500/10"
+                : "border-yellow-500/30 bg-yellow-500/10";
           return (
             <div
               key={t.id}
-              className={`flex flex-col gap-3 rounded-lg border bg-card p-4 md:flex-row md:items-center md:justify-between ${
-                overdue
-                  ? "border-orange-500/60 bg-orange-500/5"
-                  : "border-border"
-              }`}
+              className={`flex flex-col gap-3 rounded-lg border p-4 md:flex-row md:items-center md:justify-between ${rowClass}`}
             >
               <div className="flex items-start gap-3">
                 <button
