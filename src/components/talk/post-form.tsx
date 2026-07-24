@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,14 +17,21 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { X, GripVertical } from "lucide-react";
+import { X, GripVertical, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createPost, updatePost, releasePostForApproval } from "@/lib/admin.functions";
+import {
+  createPost,
+  updatePost,
+  releasePostForApproval,
+  listAvailableSlots,
+} from "@/lib/admin.functions";
 import { uploadToBucket } from "@/lib/upload";
 import { resizeImageToExact } from "@/lib/image-resize";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 type PostType = "static" | "carousel" | "video";
 type PostStatus = "planning" | "pending";
