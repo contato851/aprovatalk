@@ -187,7 +187,7 @@ export function FluxoCalendar({ readOnly = false }: { readOnly?: boolean }) {
         <div className="px-5 py-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <p className="text-xs uppercase tracking-wider opacity-70">EDIÇÃO</p>
+              <p className="text-xs tracking-wider opacity-70">Edição</p>
               <h1 className="text-xl font-semibold mt-0.5">Calendário de entregas</h1>
             </div>
             <div className="flex items-center gap-2">
