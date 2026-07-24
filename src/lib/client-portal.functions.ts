@@ -75,7 +75,7 @@ export const getClientPortal = createServerFn({ method: "GET" })
 
     const { data: posts, error: pErr } = await supabaseAdmin
       .from("posts")
-      .select("*, media:post_media(id, url, position, kind)")
+      .select("*, media:post_media(id, url, position, kind), adjustment_points:post_adjustment_points(id, time_seconds, note, frame_url, created_at)")
       .eq("client_id", client.id)
       .order("scheduled_at", { ascending: true });
     if (pErr) throw pErr;
@@ -91,9 +91,18 @@ export const getClientPortal = createServerFn({ method: "GET" })
             signed_url: await signPath(supabaseAdmin, BUCKETS.media, m.url),
           })),
         );
+        const points = await Promise.all(
+          [...(p.adjustment_points ?? [])]
+            .sort((a: any, b: any) => a.time_seconds - b.time_seconds)
+            .map(async (pt: any) => ({
+              ...pt,
+              frame_signed_url: await signPath(supabaseAdmin, BUCKETS.frames, pt.frame_url),
+            })),
+        );
         return {
           ...p,
           media,
+          adjustment_points: points,
           cover_signed_url: await signPath(
             supabaseAdmin,
             BUCKETS.covers,
@@ -102,6 +111,7 @@ export const getClientPortal = createServerFn({ method: "GET" })
         };
       }),
     );
+
 
     return {
       client: {
