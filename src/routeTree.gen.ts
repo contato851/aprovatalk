@@ -17,6 +17,7 @@ import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedFluxoRouteImport } from './routes/_authenticated/fluxo'
 import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated/design'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients/index'
 import { Route as AuthenticatedClientsClientIdIndexRouteImport } from './routes/_authenticated/clients/$clientId/index'
 import { Route as ApiPublicHooksCleanupMediaRouteImport } from './routes/api/public/hooks/cleanup-media'
@@ -63,6 +64,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedClientsIndexRoute =
   AuthenticatedClientsIndexRouteImport.update({
     id: '/clients/',
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
+  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/dashboard/day/$date': typeof AuthenticatedDashboardDayDateRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
@@ -118,12 +126,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/dashboard/day/$date': typeof AuthenticatedDashboardDayDateRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/_authenticated/dashboard/day/$date': typeof AuthenticatedDashboardDayDateRoute
   '/_authenticated/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/c/$token'
     | '/clients/'
+    | '/dashboard/'
     | '/clients/$clientId/new'
     | '/dashboard/day/$date'
     | '/posts/$postId/edit'
@@ -167,12 +177,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/dashboard'
     | '/design'
     | '/fluxo'
     | '/tasks'
     | '/c/$token'
     | '/clients'
+    | '/dashboard'
     | '/clients/$clientId/new'
     | '/dashboard/day/$date'
     | '/posts/$postId/edit'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks'
     | '/c/$token'
     | '/_authenticated/clients/'
+    | '/_authenticated/dashboard/'
     | '/_authenticated/clients/$clientId/new'
     | '/_authenticated/dashboard/day/$date'
     | '/_authenticated/posts/$postId/edit'
@@ -262,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/clients/': {
       id: '/_authenticated/clients/'
       path: '/clients'
@@ -308,11 +326,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDashboardDayDateRoute: typeof AuthenticatedDashboardDayDateRoute
 }
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
+    AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
     AuthenticatedDashboardDayDateRoute: AuthenticatedDashboardDayDateRoute,
   }
 
