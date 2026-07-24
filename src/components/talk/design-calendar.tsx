@@ -137,6 +137,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
     Array.from({ length: SLOTS_PER_DAY }, (_, i) => emptySlot(selectedKey, i));
 
   useEffect(() => {
+    if (token) return; // signed URLs come from the server function
     const paths = new Set<string>();
     for (const s of selectedSlots) for (const p of s.references_images) paths.add(p);
     const missing = [...paths].filter((p) => !signedUrls[p]);
