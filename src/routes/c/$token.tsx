@@ -123,11 +123,11 @@ function ClientFeed() {
 
       {tab === "fluxo" ? (
         <div className="mx-auto max-w-md px-4 py-6">
-          <FluxoCalendar readOnly />
+          <FluxoCalendar readOnly token={token} />
         </div>
       ) : tab === "design" ? (
         <div className="mx-auto max-w-md px-4 py-6">
-          <DesignCalendar readOnly />
+          <DesignCalendar readOnly token={token} />
         </div>
       ) : (
         <div className="mx-auto max-w-md space-y-8 px-4 py-6">

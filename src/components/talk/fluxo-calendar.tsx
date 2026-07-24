@@ -11,6 +11,8 @@ import {
 import { ptBR } from "date-fns/locale";
 import { Check, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { getDeliverySlotsByToken } from "@/lib/client-portal.functions";
 import { cn } from "@/lib/utils";
 
 type Slot = {
@@ -30,7 +32,8 @@ function emptySlot(date: string, index: number): Slot {
   return { slot_date: date, slot_index: index, client: "", title: "", folder_link: "", done: false };
 }
 
-export function FluxoCalendar({ readOnly = false }: { readOnly?: boolean }) {
+export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean; token?: string }) {
+  const fetchByToken = useServerFn(getDeliverySlotsByToken);
   const [cursor, setCursor] = useState<Date>(() => new Date());
   const [selectedDay, setSelectedDay] = useState<Date>(() => new Date());
   const [slotsByDate, setSlotsByDate] = useState<Record<string, Slot[]>>({});
@@ -56,11 +59,25 @@ export function FluxoCalendar({ readOnly = false }: { readOnly?: boolean }) {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("delivery_slots" as any)
-        .select("*")
-        .gte("slot_date", fmtDate(monthStart))
-        .lte("slot_date", fmtDate(monthEnd));
+      let rows: any[] | null = null;
+      let error: any = null;
+      if (token) {
+        try {
+          rows = await fetchByToken({
+            data: { token, monthStart: fmtDate(monthStart), monthEnd: fmtDate(monthEnd) },
+          });
+        } catch (e) {
+          error = e;
+        }
+      } else {
+        const res = await supabase
+          .from("delivery_slots" as any)
+          .select("*")
+          .gte("slot_date", fmtDate(monthStart))
+          .lte("slot_date", fmtDate(monthEnd));
+        rows = res.data as any[] | null;
+        error = res.error;
+      }
       if (cancelled) return;
       if (error) {
         console.error(error);
@@ -72,7 +89,7 @@ export function FluxoCalendar({ readOnly = false }: { readOnly?: boolean }) {
         const key = fmtDate(d);
         grouped[key] = Array.from({ length: SLOTS_PER_DAY }, (_, i) => emptySlot(key, i));
       }
-      for (const row of (data as any[]) ?? []) {
+      for (const row of (rows as any[]) ?? []) {
         const key = row.slot_date as string;
         if (!grouped[key]) continue;
         grouped[key][row.slot_index] = row as Slot;
