@@ -89,7 +89,7 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
         const key = fmtDate(d);
         grouped[key] = Array.from({ length: SLOTS_PER_DAY }, (_, i) => emptySlot(key, i));
       }
-      for (const row of (data as any[]) ?? []) {
+      for (const row of (rows as any[]) ?? []) {
         const key = row.slot_date as string;
         if (!grouped[key]) continue;
         grouped[key][row.slot_index] = row as Slot;
