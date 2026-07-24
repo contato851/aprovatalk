@@ -120,6 +120,73 @@ export function PostForm(props: Props) {
   const [slotOptions, setSlotOptions] = useState<any[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
 
+  // ---- Google Drive ----
+  const [driveUrl, setDriveUrl] = useState("");
+  const [driveFiles, setDriveFiles] = useState<any[]>([]);
+  const [driveLoading, setDriveLoading] = useState(false);
+  const [driveOpen, setDriveOpen] = useState(false);
+  const [importingIds, setImportingIds] = useState<Set<string>>(new Set());
+
+  async function loadDrive() {
+    if (!driveUrl.trim()) return;
+    setDriveLoading(true);
+    try {
+      const res = await listDriveFn({ data: { url: driveUrl.trim() } });
+      const filtered = (res.files ?? []).filter((f: any) => {
+        const m = f.mimeType ?? "";
+        return m.startsWith("image/") || m.startsWith("video/");
+      });
+      setDriveFiles(filtered);
+      if (filtered.length === 0) toast.info("Nenhuma imagem/vídeo encontrada nesta pasta.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao listar Drive");
+    } finally {
+      setDriveLoading(false);
+    }
+  }
+
+  async function importFromDrive(fileIds: string[], target: "media" | "cover") {
+    if (fileIds.length === 0) return;
+    setImportingIds((prev) => {
+      const n = new Set(prev);
+      fileIds.forEach((id) => n.add(id));
+      return n;
+    });
+    try {
+      const bucket = target === "cover" ? "post-covers" : "post-media";
+      const res = await importDriveFn({ data: { fileIds, bucket } });
+      if (target === "cover") {
+        const first = res[0];
+        if (first) {
+          setCoverPath(first.path);
+          setCoverPreview(first.signed_url);
+          setCoverFile(null);
+          toast.success("Capa importada do Drive.");
+        }
+      } else {
+        const newSlots: MediaSlot[] = res.map((r) => ({
+          id: crypto.randomUUID(),
+          path: r.path,
+          previewUrl: r.signed_url ?? "",
+          kind: r.kind,
+        }));
+        if (type === "static" || type === "video") setMedia(newSlots.slice(0, 1));
+        else setMedia((prev) => [...prev, ...newSlots]);
+        toast.success(`${res.length} arquivo(s) importado(s).`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao importar do Drive");
+    } finally {
+      setImportingIds((prev) => {
+        const n = new Set(prev);
+        fileIds.forEach((id) => n.delete(id));
+        return n;
+      });
+    }
+  }
+
+
+
   useEffect(() => {
     if (!isDraft || linkKind === "none") {
       setSlotOptions([]);
