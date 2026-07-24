@@ -5,7 +5,7 @@ import { listPosts, listClients } from "@/lib/admin.functions";
 import { useMemo, useState } from "react";
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarDays, LayoutList, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TalkStar } from "@/components/talk/star";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
