@@ -16,7 +16,7 @@ import { Route as CTokenRouteImport } from './routes/c/$token'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedFluxoRouteImport } from './routes/_authenticated/fluxo'
 import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated/design'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients/index'
 import { Route as AuthenticatedClientsClientIdIndexRouteImport } from './routes/_authenticated/clients/$clientId/index'
 import { Route as ApiPublicHooksCleanupMediaRouteImport } from './routes/api/public/hooks/cleanup-media'
@@ -58,11 +58,12 @@ const AuthenticatedDesignRoute = AuthenticatedDesignRouteImport.update({
   path: '/design',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/dashboard/',
+    path: '/dashboard/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientsIndexRoute =
   AuthenticatedClientsIndexRouteImport.update({
     id: '/clients/',
@@ -89,9 +90,9 @@ const AuthenticatedPostsPostIdEditRoute =
   } as any)
 const AuthenticatedDashboardDayDateRoute =
   AuthenticatedDashboardDayDateRouteImport.update({
-    id: '/day/$date',
-    path: '/day/$date',
-    getParentRoute: () => AuthenticatedDashboardRoute,
+    id: '/dashboard/day/$date',
+    path: '/dashboard/day/$date',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedClientsClientIdNewRoute =
   AuthenticatedClientsClientIdNewRouteImport.update({
@@ -103,12 +104,12 @@ const AuthenticatedClientsClientIdNewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
+  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/dashboard/day/$date': typeof AuthenticatedDashboardDayDateRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
@@ -118,12 +119,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/dashboard/day/$date': typeof AuthenticatedDashboardDayDateRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
@@ -135,12 +136,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/design': typeof AuthenticatedDesignRoute
   '/_authenticated/fluxo': typeof AuthenticatedFluxoRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/_authenticated/dashboard/day/$date': typeof AuthenticatedDashboardDayDateRoute
   '/_authenticated/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
@@ -152,12 +153,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/dashboard'
     | '/design'
     | '/fluxo'
     | '/tasks'
     | '/c/$token'
     | '/clients/'
+    | '/dashboard/'
     | '/clients/$clientId/new'
     | '/dashboard/day/$date'
     | '/posts/$postId/edit'
@@ -167,12 +168,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/dashboard'
     | '/design'
     | '/fluxo'
     | '/tasks'
     | '/c/$token'
     | '/clients'
+    | '/dashboard'
     | '/clients/$clientId/new'
     | '/dashboard/day/$date'
     | '/posts/$postId/edit'
@@ -183,12 +184,12 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/_authenticated/dashboard'
     | '/_authenticated/design'
     | '/_authenticated/fluxo'
     | '/_authenticated/tasks'
     | '/c/$token'
     | '/_authenticated/clients/'
+    | '/_authenticated/dashboard/'
     | '/_authenticated/clients/$clientId/new'
     | '/_authenticated/dashboard/day/$date'
     | '/_authenticated/posts/$postId/edit'
@@ -255,11 +256,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDesignRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
       path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clients/': {
@@ -292,10 +293,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/dashboard/day/$date': {
       id: '/_authenticated/dashboard/day/$date'
-      path: '/day/$date'
+      path: '/dashboard/day/$date'
       fullPath: '/dashboard/day/$date'
       preLoaderRoute: typeof AuthenticatedDashboardDayDateRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clients/$clientId/new': {
       id: '/_authenticated/clients/$clientId/new'
@@ -307,38 +308,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedDashboardRouteChildren {
-  AuthenticatedDashboardDayDateRoute: typeof AuthenticatedDashboardDayDateRoute
-}
-
-const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
-  {
-    AuthenticatedDashboardDayDateRoute: AuthenticatedDashboardDayDateRoute,
-  }
-
-const AuthenticatedDashboardRouteWithChildren =
-  AuthenticatedDashboardRoute._addFileChildren(
-    AuthenticatedDashboardRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedDesignRoute: typeof AuthenticatedDesignRoute
   AuthenticatedFluxoRoute: typeof AuthenticatedFluxoRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedClientsClientIdNewRoute: typeof AuthenticatedClientsClientIdNewRoute
+  AuthenticatedDashboardDayDateRoute: typeof AuthenticatedDashboardDayDateRoute
   AuthenticatedPostsPostIdEditRoute: typeof AuthenticatedPostsPostIdEditRoute
   AuthenticatedClientsClientIdIndexRoute: typeof AuthenticatedClientsClientIdIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedDesignRoute: AuthenticatedDesignRoute,
   AuthenticatedFluxoRoute: AuthenticatedFluxoRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
+  AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedClientsClientIdNewRoute: AuthenticatedClientsClientIdNewRoute,
+  AuthenticatedDashboardDayDateRoute: AuthenticatedDashboardDayDateRoute,
   AuthenticatedPostsPostIdEditRoute: AuthenticatedPostsPostIdEditRoute,
   AuthenticatedClientsClientIdIndexRoute:
     AuthenticatedClientsClientIdIndexRoute,
