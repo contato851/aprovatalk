@@ -34,6 +34,15 @@ import {
 } from "@/components/ui/select";
 import { CheckCircle2, Circle, Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import biaAvatar from "@/assets/team/bia.jpg.asset.json";
+import johnnyAvatar from "@/assets/team/johnny.jpg.asset.json";
+import diandraAvatar from "@/assets/team/diandra.jpg.asset.json";
+
+const AVATAR_BY_EMAIL: Record<string, string> = {
+  "bia@talk.local": biaAvatar.url,
+  "johnny@talk.local": johnnyAvatar.url,
+  "diandra@talk.local": diandraAvatar.url,
+};
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({
@@ -281,13 +290,22 @@ function TasksPage() {
                   {t.participants.map((pid) => {
                     const m = teamById[pid];
                     if (!m) return null;
+                    const avatar = AVATAR_BY_EMAIL[m.email.toLowerCase()];
                     return (
                       <div
                         key={pid}
                         title={m.name}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-muted text-[10px] font-semibold text-foreground"
+                        className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border-2 border-background bg-muted text-[10px] font-semibold text-foreground"
                       >
-                        {initials(m.name)}
+                        {avatar ? (
+                          <img
+                            src={avatar}
+                            alt={m.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          initials(m.name)
+                        )}
                       </div>
                     );
                   })}
@@ -439,18 +457,28 @@ function TaskDialog({
               {team.length === 0 && (
                 <p className="text-xs text-muted-foreground">Nenhum membro encontrado.</p>
               )}
-              {team.map((m) => (
-                <label
-                  key={m.id}
-                  className="flex cursor-pointer items-center gap-2 text-sm"
-                >
-                  <Checkbox
-                    checked={participants.includes(m.id)}
-                    onCheckedChange={() => toggleParticipant(m.id)}
-                  />
-                  <span>{m.name}</span>
-                </label>
-              ))}
+              {team.map((m) => {
+                const avatar = AVATAR_BY_EMAIL[m.email.toLowerCase()];
+                return (
+                  <label
+                    key={m.id}
+                    className="flex cursor-pointer items-center gap-2 text-sm"
+                  >
+                    <Checkbox
+                      checked={participants.includes(m.id)}
+                      onCheckedChange={() => toggleParticipant(m.id)}
+                    />
+                    <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-muted text-[10px] font-semibold">
+                      {avatar ? (
+                        <img src={avatar} alt={m.name} className="h-full w-full object-cover" />
+                      ) : (
+                        initials(m.name)
+                      )}
+                    </div>
+                    <span>{m.name}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         </div>
