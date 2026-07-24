@@ -59,11 +59,25 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("delivery_slots" as any)
-        .select("*")
-        .gte("slot_date", fmtDate(monthStart))
-        .lte("slot_date", fmtDate(monthEnd));
+      let rows: any[] | null = null;
+      let error: any = null;
+      if (token) {
+        try {
+          rows = await fetchByToken({
+            data: { token, monthStart: fmtDate(monthStart), monthEnd: fmtDate(monthEnd) },
+          });
+        } catch (e) {
+          error = e;
+        }
+      } else {
+        const res = await supabase
+          .from("delivery_slots" as any)
+          .select("*")
+          .gte("slot_date", fmtDate(monthStart))
+          .lte("slot_date", fmtDate(monthEnd));
+        rows = res.data as any[] | null;
+        error = res.error;
+      }
       if (cancelled) return;
       if (error) {
         console.error(error);
