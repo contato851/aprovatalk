@@ -101,7 +101,7 @@ function ClientFeed() {
               { v: "pending", l: "Pendentes" },
               { v: "approved", l: "Aprovados" },
               { v: "rejected", l: "Reprovados" },
-              { v: "fluxo", l: "Fluxo" },
+              { v: "fluxo", l: "EDIÇÃO" },
             ] as { v: Tab; l: string }[]
           ).map((t) => (
             <button

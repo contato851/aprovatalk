@@ -65,7 +65,7 @@ function AuthenticatedLayout() {
               className="text-xs font-medium text-muted-foreground transition hover:text-foreground data-[status=active]:text-foreground md:text-sm"
               activeProps={{ className: "text-foreground" }}
             >
-              Fluxo
+              EDIÇÃO
             </Link>
           </nav>
           <div className="flex items-center gap-3">
