@@ -32,7 +32,8 @@ function emptySlot(date: string, index: number): Slot {
   return { slot_date: date, slot_index: index, client: "", title: "", folder_link: "", done: false };
 }
 
-export function FluxoCalendar({ readOnly = false }: { readOnly?: boolean }) {
+export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean; token?: string }) {
+  const fetchByToken = useServerFn(getDeliverySlotsByToken);
   const [cursor, setCursor] = useState<Date>(() => new Date());
   const [selectedDay, setSelectedDay] = useState<Date>(() => new Date());
   const [slotsByDate, setSlotsByDate] = useState<Record<string, Slot[]>>({});
