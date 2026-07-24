@@ -291,8 +291,8 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
   const monthLabel = format(cursor, "MMMM yyyy", { locale: ptBR });
 
   return (
-    <div className="flex flex-col rounded-3xl border border-border bg-card overflow-hidden">
-      <header className="bg-foreground text-background">
+    <div className="flex flex-col rounded-3xl border border-black/10 bg-[#e6fb53] overflow-hidden">
+      <header className="bg-[#e6fb53] text-foreground">
         <div className="px-5 py-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
@@ -302,17 +302,17 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCursor((c) => addMonths(c, -1))}
-                className="h-9 w-9 grid place-items-center rounded-full bg-white/10 hover:bg-white/20 transition"
+                className="h-9 w-9 grid place-items-center rounded-full bg-black/10 hover:bg-black/20 transition"
                 aria-label="Mês anterior"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <div className="px-4 py-1.5 rounded-full bg-white/10 capitalize text-sm font-medium min-w-[160px] text-center">
+              <div className="px-4 py-1.5 rounded-full bg-black/10 capitalize text-sm font-medium min-w-[160px] text-center">
                 {monthLabel}
               </div>
               <button
                 onClick={() => setCursor((c) => addMonths(c, 1))}
-                className="h-9 w-9 grid place-items-center rounded-full bg-white/10 hover:bg-white/20 transition"
+                className="h-9 w-9 grid place-items-center rounded-full bg-black/10 hover:bg-black/20 transition"
                 aria-label="Próximo mês"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -333,7 +333,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                     "relative shrink-0 h-10 w-10 rounded-xl text-sm font-medium transition",
                     active
                       ? "bg-background text-foreground shadow-sm"
-                      : "bg-white/10 text-background hover:bg-white/20",
+                      : "bg-black/10 text-foreground hover:bg-black/20",
                   )}
                 >
                   {format(d, "d")}
@@ -531,7 +531,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
         {loading && <p className="mt-4 text-xs text-muted-foreground">Carregando…</p>}
       </main>
 
-      <footer className="border-t border-border bg-muted/30">
+      <footer className="border-t border-black/10 bg-black/5">
         <div className="px-5 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-5 text-sm">
             <Counter label="Concluídas" value={done} dotClass="bg-emerald-500" />

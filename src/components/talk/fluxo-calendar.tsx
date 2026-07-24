@@ -199,8 +199,8 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
   const monthLabel = format(cursor, "MMMM yyyy", { locale: ptBR });
 
   return (
-    <div className="flex flex-col rounded-3xl border border-border bg-card overflow-hidden">
-      <header className="bg-foreground text-background">
+    <div className="flex flex-col rounded-3xl border border-[#1844ee]/50 bg-[#1844ee] overflow-hidden">
+      <header className="bg-[#1844ee] text-white">
         <div className="px-5 py-5">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
@@ -261,11 +261,11 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
       </header>
 
       <main className="p-5">
-        <div className="text-center mb-6">
+        <div className="text-center mb-6 text-white">
           <h2 className="text-lg font-semibold capitalize">
             {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}
           </h2>
-          <span className="text-xs text-muted-foreground mt-1 block">
+          <span className="text-xs text-white/70 mt-1 block">
             Prazo automático: D+2 úteis ({format(addBusinessDays(selectedDay, 2), "dd/MM")})
           </span>
         </div>
@@ -354,14 +354,14 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
         {loading && <p className="mt-4 text-xs text-muted-foreground">Carregando…</p>}
       </main>
 
-      <footer className="border-t border-border bg-muted/30">
+      <footer className="border-t border-white/20 bg-black/10 text-white">
         <div className="px-5 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-5 text-sm">
             <Counter label="Concluídas" value={done} dotClass="bg-emerald-500" />
-            <Counter label="Pendentes" value={pending} dotClass="bg-foreground" />
-            <Counter label="Total no mês" value={total} dotClass="bg-muted-foreground" />
+            <Counter label="Pendentes" value={pending} dotClass="bg-white" />
+            <Counter label="Total no mês" value={total} dotClass="bg-white/70" />
           </div>
-          <p className="text-xs text-muted-foreground capitalize">{monthLabel}</p>
+          <p className="text-xs text-white/70 capitalize">{monthLabel}</p>
         </div>
       </footer>
     </div>
@@ -372,7 +372,7 @@ function Counter({ label, value, dotClass }: { label: string; value: number; dot
   return (
     <div className="flex items-center gap-2">
       <span className={cn("h-2.5 w-2.5 rounded-full", dotClass)} />
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-white/70">{label}</span>
       <span className="font-semibold tabular-nums">{value}</span>
     </div>
   );
