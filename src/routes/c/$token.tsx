@@ -132,7 +132,9 @@ function ClientFeed() {
             </p>
           </div>
         ) : tab === "planning" ? (
-          <PlanningList posts={filtered} />
+          filtered.map((p: any) => (
+            <PlanningFeedCard key={p.id} post={p} client={client} />
+          ))
         ) : (
           filtered.map((p: any) => (
             <FeedCard key={p.id} post={p} client={client} token={token} readOnly={tab !== "pending"} />
