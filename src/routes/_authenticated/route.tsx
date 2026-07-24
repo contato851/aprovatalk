@@ -138,7 +138,17 @@ function AuthenticatedLayout() {
           </nav>
           <div className="flex items-center gap-3">
             <span className="hidden text-xs text-muted-foreground sm:inline">
-              {user.email}
+              {(() => {
+                const meta = (user.user_metadata ?? {}) as Record<string, any>;
+                const name =
+                  meta.name ||
+                  meta.full_name ||
+                  user.email?.split("@")[0] ||
+                  "Usuário";
+                return name
+                  .toString()
+                  .replace(/^./, (c: string) => c.toUpperCase());
+              })()}
             </span>
             <button
               onClick={handleSignOut}
