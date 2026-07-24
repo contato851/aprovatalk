@@ -17,7 +17,7 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { X, GripVertical, Link2 } from "lucide-react";
+import { X, GripVertical, Link2, FolderInput, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,9 +28,11 @@ import {
   releasePostForApproval,
   listAvailableSlots,
 } from "@/lib/admin.functions";
+import { listDriveFolder, importDriveFiles } from "@/lib/drive.functions";
 import { uploadToBucket } from "@/lib/upload";
 import { resizeImageToExact } from "@/lib/image-resize";
 import { format, parseISO } from "date-fns";
+
 import { ptBR } from "date-fns/locale";
 
 type PostType = "static" | "carousel" | "video";
