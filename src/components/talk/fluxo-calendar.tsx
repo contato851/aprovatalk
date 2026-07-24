@@ -354,14 +354,14 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
         {loading && <p className="mt-4 text-xs text-muted-foreground">Carregando…</p>}
       </main>
 
-      <footer className="border-t border-border bg-muted/30">
+      <footer className="border-t border-white/20 bg-black/10">
         <div className="px-5 py-3 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-5 text-sm">
             <Counter label="Concluídas" value={done} dotClass="bg-emerald-500" />
-            <Counter label="Pendentes" value={pending} dotClass="bg-foreground" />
-            <Counter label="Total no mês" value={total} dotClass="bg-muted-foreground" />
+            <Counter label="Pendentes" value={pending} dotClass="bg-white" />
+            <Counter label="Total no mês" value={total} dotClass="bg-white/70" />
           </div>
-          <p className="text-xs text-muted-foreground capitalize">{monthLabel}</p>
+          <p className="text-xs text-white/70 capitalize">{monthLabel}</p>
         </div>
       </footer>
     </div>
