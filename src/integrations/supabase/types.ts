@@ -47,6 +47,42 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_slots: {
+        Row: {
+          client: string
+          created_at: string
+          done: boolean
+          folder_link: string
+          id: string
+          slot_date: string
+          slot_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client?: string
+          created_at?: string
+          done?: boolean
+          folder_link?: string
+          id?: string
+          slot_date: string
+          slot_index: number
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          client?: string
+          created_at?: string
+          done?: boolean
+          folder_link?: string
+          id?: string
+          slot_date?: string
+          slot_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       post_adjustment_points: {
         Row: {
           created_at: string
