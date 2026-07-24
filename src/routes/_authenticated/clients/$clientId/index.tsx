@@ -13,7 +13,7 @@ import { Copy, Plus, Rocket } from "lucide-react";
 import { toast } from "sonner";
 
 const searchSchema = z.object({
-  tab: z.enum(["planning", "approval"]).default("approval"),
+  tab: z.enum(["planning", "review", "approval"]).default("approval"),
 });
 
 export const Route = createFileRoute("/_authenticated/clients/$clientId/")({
@@ -42,8 +42,11 @@ function ClientDetail() {
   const c = clientQ.data as any;
   const all = (postsQ.data ?? []) as any[];
   const planning = all.filter((p) => p.status === "planning");
-  const approval = all.filter((p) => p.status !== "planning");
-  const list = tab === "planning" ? planning : approval;
+  const review = all.filter((p) => p.status === "ready_for_review");
+  const approval = all.filter(
+    (p) => p.status !== "planning" && p.status !== "ready_for_review",
+  );
+  const list = tab === "planning" ? planning : tab === "review" ? review : approval;
 
   async function handleRelease(id: string) {
     try {
@@ -103,10 +106,11 @@ function ClientDetail() {
         </div>
       </div>
 
-      <div className="flex gap-1 rounded-full border border-border bg-card p-1 w-fit">
+      <div className="flex flex-wrap gap-1 rounded-full border border-border bg-card p-1 w-fit">
         {(
           [
             { v: "planning", l: `Planejamento (${planning.length})` },
+            { v: "review", l: `Pronto p/ revisão (${review.length})` },
             { v: "approval", l: `Aprovação (${approval.length})` },
           ] as const
         ).map((t) => (
@@ -137,7 +141,9 @@ function ClientDetail() {
           <p className="mt-4 rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
             {tab === "planning"
               ? "Nenhum rascunho ainda. Crie um novo para começar o planejamento."
-              : "Nenhum post em aprovação."}
+              : tab === "review"
+                ? "Nenhum post aguardando revisão."
+                : "Nenhum post em aprovação."}
           </p>
         ) : (
           <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -146,6 +152,13 @@ function ClientDetail() {
                 p.cover_signed_url ??
                 (p.media?.[0]?.kind === "image" ? p.media[0].signed_url : null);
               const isPlanning = p.status === "planning";
+              const isReady = p.status === "ready_for_review";
+              const linkedSlot = p.linked_design_slot ?? p.linked_delivery_slot;
+              const linkedKind = p.linked_design_slot
+                ? "design"
+                : p.linked_delivery_slot
+                  ? "delivery"
+                  : null;
               return (
                 <div
                   key={p.id}
@@ -191,26 +204,38 @@ function ClientDetail() {
                         className={`absolute right-2 top-2 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
                           p.status === "planning"
                             ? "border-border bg-muted text-muted-foreground"
-                            : p.status === "approved"
-                              ? "border-brand-chartreuse/30 bg-brand-chartreuse-soft text-emerald-700"
-                              : p.status === "rejected"
-                                ? "border-brand-purple/30 bg-brand-purple-soft text-brand-purple"
-                                : "border-brand-orange/30 bg-brand-orange-soft text-brand-orange"
+                            : p.status === "ready_for_review"
+                              ? "border-brand-purple/40 bg-brand-purple text-white"
+                              : p.status === "approved"
+                                ? "border-brand-chartreuse/30 bg-brand-chartreuse-soft text-emerald-700"
+                                : p.status === "rejected"
+                                  ? "border-brand-purple/30 bg-brand-purple-soft text-brand-purple"
+                                  : "border-brand-orange/30 bg-brand-orange-soft text-brand-orange"
                         }`}
                       >
                         {p.status === "planning"
                           ? "Planejamento"
-                          : p.status === "approved"
-                            ? "Aprovado"
-                            : p.status === "rejected"
-                              ? "Reprovado"
-                              : "Pendente"}
+                          : p.status === "ready_for_review"
+                            ? "Pronto p/ revisão"
+                            : p.status === "approved"
+                              ? "Aprovado"
+                              : p.status === "rejected"
+                                ? "Reprovado"
+                                : "Pendente"}
                       </span>
                     </div>
                     <div className="p-3">
                       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
                         {format(parseISO(p.scheduled_at), "dd/MM 'às' HH'h'", { locale: ptBR })}
                       </div>
+                      {linkedSlot && (
+                        <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-brand-purple-soft px-1.5 py-0.5 text-[10px] font-medium text-brand-purple">
+                          {linkedKind === "design" ? "🎨 Design" : "🎬 Edição"}
+                          {linkedSlot.slot_date &&
+                            ` · ${format(parseISO(linkedSlot.slot_date), "dd/MM", { locale: ptBR })}`}
+                          {linkedSlot.done ? " ✓" : ""}
+                        </div>
+                      )}
                       <p className="mt-1 line-clamp-2 text-sm">{p.caption || "—"}</p>
                       {p.status === "rejected" && p.client_comment && (
                         <p className="mt-2 rounded-md bg-brand-purple-soft p-2 text-xs text-brand-purple">
@@ -219,7 +244,7 @@ function ClientDetail() {
                       )}
                     </div>
                   </Link>
-                  {isPlanning && (
+                  {(isPlanning || isReady) && (
                     <div className="border-t border-border p-2">
                       <button
                         onClick={() => handleRelease(p.id)}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,17 +17,25 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { X, GripVertical } from "lucide-react";
+import { X, GripVertical, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createPost, updatePost, releasePostForApproval } from "@/lib/admin.functions";
+import {
+  createPost,
+  updatePost,
+  releasePostForApproval,
+  listAvailableSlots,
+} from "@/lib/admin.functions";
 import { uploadToBucket } from "@/lib/upload";
 import { resizeImageToExact } from "@/lib/image-resize";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 type PostType = "static" | "carousel" | "video";
-type PostStatus = "planning" | "pending";
+type PostStatus = "planning" | "pending" | "ready_for_review";
+type LinkKind = "none" | "design" | "delivery";
 
 type MediaSlot = {
   id: string;
@@ -56,13 +64,19 @@ export function PostForm(props: Props) {
   const createFn = useServerFn(createPost);
   const updateFn = useServerFn(updatePost);
   const releaseFn = useServerFn(releasePostForApproval);
+  const listSlotsFn = useServerFn(listAvailableSlots);
 
   const initial = props.mode === "edit" ? props.initial : null;
   const currentStatus: PostStatus =
     props.mode === "edit"
-      ? (initial?.status === "planning" ? "planning" : "pending")
+      ? (initial?.status === "planning"
+          ? "planning"
+          : initial?.status === "ready_for_review"
+            ? "ready_for_review"
+            : "pending")
       : (props.initialStatus ?? "pending");
-  const isPlanning = currentStatus === "planning";
+  const isDraft = currentStatus === "planning" || currentStatus === "ready_for_review";
+  const isPlanning = isDraft; // manter compatibilidade com o resto do arquivo
 
   const [type, setType] = useState<PostType>(initial?.type ?? "static");
   const [caption, setCaption] = useState<string>(initial?.caption ?? "");
@@ -87,6 +101,47 @@ export function PostForm(props: Props) {
     initial?.cover_signed_url ?? null,
   );
   const [saving, setSaving] = useState(false);
+
+  // ---- Vínculo com entrega (Design/Edição) ----
+  const initialLinkKind: LinkKind = initial?.linked_design_slot_id
+    ? "design"
+    : initial?.linked_delivery_slot_id
+      ? "delivery"
+      : "none";
+  const [linkKind, setLinkKind] = useState<LinkKind>(initialLinkKind);
+  const [linkedSlotId, setLinkedSlotId] = useState<string | null>(
+    initial?.linked_design_slot_id ?? initial?.linked_delivery_slot_id ?? null,
+  );
+  const [slotOptions, setSlotOptions] = useState<any[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  useEffect(() => {
+    if (!isDraft || linkKind === "none") {
+      setSlotOptions([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setLoadingSlots(true);
+      try {
+        const res = await listSlotsFn({
+          data: {
+            slotType: linkKind,
+            includeId: linkedSlotId ?? null,
+          },
+        });
+        if (!cancelled) setSlotOptions(res ?? []);
+      } catch (e) {
+        if (!cancelled) setSlotOptions([]);
+      } finally {
+        if (!cancelled) setLoadingSlots(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkKind, isDraft]);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -156,17 +211,31 @@ export function PostForm(props: Props) {
       let finalCoverPath: string | null = coverPath;
       if (coverFile) finalCoverPath = await uploadToBucket("post-covers", coverFile);
 
+      const linkPayload = isDraft
+        ? {
+            linked_design_slot_id:
+              linkKind === "design" ? linkedSlotId : null,
+            linked_delivery_slot_id:
+              linkKind === "delivery" ? linkedSlotId : null,
+          }
+        : {};
+
       const payload = {
         type,
         caption,
         scheduled_at: new Date(scheduled).toISOString(),
         cover_path: finalCoverPath,
         media: uploaded,
+        ...linkPayload,
       };
 
       if (props.mode === "create") {
         await createFn({
-          data: { ...payload, client_id: props.clientId, status: currentStatus },
+          data: {
+            ...payload,
+            client_id: props.clientId,
+            status: currentStatus === "ready_for_review" ? "planning" : currentStatus,
+          },
         });
         toast.success(isPlanning ? "Rascunho salvo!" : "Post criado!");
       } else {
@@ -334,6 +403,71 @@ export function PostForm(props: Props) {
           placeholder="Escreva a legenda com quebras de linha e emojis…"
         />
       </div>
+
+      {/* Vínculo com entrega — só para rascunhos */}
+      {isDraft && (
+        <div className="rounded-2xl border border-dashed border-brand-purple/40 bg-brand-purple-soft/40 p-4">
+          <Label className="flex items-center gap-2 text-brand-purple">
+            <Link2 className="h-4 w-4" /> Vincular a uma entrega
+          </Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Quando o designer/editor marcar a entrega como concluída, este post sobe automaticamente para <strong>Pronto para revisão</strong>.
+          </p>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {(
+              [
+                { v: "none", l: "Nenhuma" },
+                { v: "design", l: "🎨 Design" },
+                { v: "delivery", l: "🎬 Edição" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.v}
+                type="button"
+                onClick={() => {
+                  setLinkKind(opt.v);
+                  if (opt.v === "none") setLinkedSlotId(null);
+                  else if (opt.v !== initialLinkKind) setLinkedSlotId(null);
+                }}
+                className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                  linkKind === opt.v
+                    ? "border-brand-purple bg-brand-purple text-white"
+                    : "border-border bg-card hover:bg-accent"
+                }`}
+              >
+                {opt.l}
+              </button>
+            ))}
+          </div>
+          {linkKind !== "none" && (
+            <div className="mt-3">
+              <select
+                value={linkedSlotId ?? ""}
+                onChange={(e) => setLinkedSlotId(e.target.value || null)}
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm"
+              >
+                <option value="">
+                  {loadingSlots ? "Carregando…" : "Selecione uma entrega…"}
+                </option>
+                {slotOptions.map((s: any) => {
+                  const label = `${format(parseISO(s.slot_date), "dd/MM (EEE)", { locale: ptBR })} · #${s.slot_index + 1} — ${s.title || s.client || "(sem título)"}${s.done ? " ✓" : ""}`;
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
+              {!loadingSlots && slotOptions.length === 0 && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Nenhuma entrega disponível. Crie um slot na aba {linkKind === "design" ? "Design" : "Edição"} primeiro.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
 
       {/* Scheduled */}
       <div>

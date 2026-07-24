@@ -146,13 +146,13 @@ export const listPosts = createServerFn({ method: "GET" })
   .inputValidator((d: {
     clientId?: string;
     type?: "static" | "carousel" | "video";
-    status?: "planning" | "pending" | "approved" | "rejected";
+    status?: "planning" | "pending" | "approved" | "rejected" | "ready_for_review";
   }) =>
     z
       .object({
         clientId: z.string().uuid().optional(),
         type: z.enum(["static", "carousel", "video"]).optional(),
-        status: z.enum(["planning", "pending", "approved", "rejected"]).optional(),
+        status: z.enum(["planning", "pending", "approved", "rejected", "ready_for_review"]).optional(),
       })
       .parse(d ?? {}),
   )
@@ -161,7 +161,7 @@ export const listPosts = createServerFn({ method: "GET" })
     let q = context.supabase
       .from("posts")
       .select(
-        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind)",
+        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)",
       )
       .order("scheduled_at", { ascending: true });
     if (data.clientId) q = q.eq("client_id", data.clientId);
@@ -183,13 +183,51 @@ export const getPost = createServerFn({ method: "GET" })
     const { data: post, error } = await context.supabase
       .from("posts")
       .select(
-        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind), adjustment_points:post_adjustment_points(id, time_seconds, note, frame_url, created_at)",
+        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind), adjustment_points:post_adjustment_points(id, time_seconds, note, frame_url, created_at), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)",
       )
 
       .eq("id", data.id)
       .single();
     if (error) throw error;
     return await enrichPost(context.supabase, post);
+  });
+
+/** Lista slots (não vinculados a outro post) para escolher no formulário */
+export const listAvailableSlots = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { slotType: "design" | "delivery"; includeId?: string | null }) =>
+    z
+      .object({
+        slotType: z.enum(["design", "delivery"]),
+        includeId: z.string().uuid().nullable().optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const table = data.slotType === "design" ? "design_slots" : "delivery_slots";
+    const linkCol =
+      data.slotType === "design" ? "linked_design_slot_id" : "linked_delivery_slot_id";
+
+    const { data: linkedRows, error: lErr } = await context.supabase
+      .from("posts")
+      .select(`id, ${linkCol}`)
+      .not(linkCol, "is", null);
+    if (lErr) throw lErr;
+    const linkedIds = new Set<string>(
+      ((linkedRows ?? []) as any[])
+        .map((r: any) => r[linkCol])
+        .filter((v: any) => !!v && v !== data.includeId),
+    );
+
+    const { data: slots, error } = await context.supabase
+      .from(table)
+      .select("id, slot_date, slot_index, title, client, done")
+      .order("slot_date", { ascending: true })
+      .order("slot_index", { ascending: true });
+    if (error) throw error;
+
+    return (slots ?? []).filter((s: any) => !linkedIds.has(s.id));
   });
 
 /** Cria post + mídia */
@@ -210,11 +248,16 @@ export const createPost = createServerFn({ method: "POST" })
         cover_path: z.string().nullable().optional(),
         media: z.array(mediaItem).default([]),
         status: z.enum(["planning", "pending"]).default("pending"),
+        linked_design_slot_id: z.string().uuid().nullable().optional(),
+        linked_delivery_slot_id: z.string().uuid().nullable().optional(),
       })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
+    if (data.linked_design_slot_id && data.linked_delivery_slot_id) {
+      throw new Error("Vincule a apenas uma entrega (Design ou Edição).");
+    }
     if (data.status === "pending") {
       if (data.media.length === 0) throw new Error("Envie ao menos uma mídia.");
       if (data.type === "video" && !data.cover_path) {
@@ -232,6 +275,8 @@ export const createPost = createServerFn({ method: "POST" })
         status: data.status,
         client_comment: null,
         responded_at: null,
+        linked_design_slot_id: data.linked_design_slot_id ?? null,
+        linked_delivery_slot_id: data.linked_delivery_slot_id ?? null,
       })
       .select("*")
       .single();
@@ -252,7 +297,7 @@ export const createPost = createServerFn({ method: "POST" })
 
 /**
  * Atualiza post + substitui mídia.
- * - Se o post estiver em "planning", permanece em "planning".
+ * - Se o post estiver em "planning" ou "ready_for_review", mantém o status.
  * - Caso contrário, volta para "pending" (mantém o fluxo atual de reedição).
  */
 export const updatePost = createServerFn({ method: "POST" })
@@ -266,11 +311,16 @@ export const updatePost = createServerFn({ method: "POST" })
         scheduled_at: z.string(),
         cover_path: z.string().nullable().optional(),
         media: z.array(mediaItem).default([]),
+        linked_design_slot_id: z.string().uuid().nullable().optional(),
+        linked_delivery_slot_id: z.string().uuid().nullable().optional(),
       })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
+    if (data.linked_design_slot_id && data.linked_delivery_slot_id) {
+      throw new Error("Vincule a apenas uma entrega (Design ou Edição).");
+    }
 
     const { data: existing, error: exErr } = await context.supabase
       .from("posts")
@@ -279,26 +329,33 @@ export const updatePost = createServerFn({ method: "POST" })
       .single();
     if (exErr) throw exErr;
 
-    const keepPlanning = existing.status === "planning";
-    const nextStatus = keepPlanning ? "planning" : "pending";
+    const keepStatus =
+      existing.status === "planning" || existing.status === "ready_for_review";
+    const nextStatus = keepStatus ? existing.status : "pending";
 
-    if (!keepPlanning) {
+    if (!keepStatus) {
       if (data.media.length === 0) throw new Error("Envie ao menos uma mídia.");
       if (data.type === "video" && !data.cover_path) {
         throw new Error("Vídeo requer capa.");
       }
     }
 
+    const patch: any = {
+      type: data.type,
+      caption: data.caption,
+      scheduled_at: data.scheduled_at,
+      cover_url: data.cover_path ?? null,
+      status: nextStatus,
+      responded_at: null,
+    };
+    if (data.linked_design_slot_id !== undefined)
+      patch.linked_design_slot_id = data.linked_design_slot_id;
+    if (data.linked_delivery_slot_id !== undefined)
+      patch.linked_delivery_slot_id = data.linked_delivery_slot_id;
+
     const { error: uErr } = await context.supabase
       .from("posts")
-      .update({
-        type: data.type,
-        caption: data.caption,
-        scheduled_at: data.scheduled_at,
-        cover_url: data.cover_path ?? null,
-        status: nextStatus,
-        responded_at: null,
-      })
+      .update(patch)
       .eq("id", data.id);
     if (uErr) throw uErr;
 
@@ -338,8 +395,8 @@ export const releasePostForApproval = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .single();
     if (error) throw error;
-    if (post.status !== "planning") {
-      throw new Error("Este post não está em planejamento.");
+    if (post.status !== "planning" && post.status !== "ready_for_review") {
+      throw new Error("Este post não pode ser liberado neste status.");
     }
 
     const missing: string[] = [];
