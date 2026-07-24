@@ -55,8 +55,14 @@ export function PostForm(props: Props) {
   const qc = useQueryClient();
   const createFn = useServerFn(createPost);
   const updateFn = useServerFn(updatePost);
+  const releaseFn = useServerFn(releasePostForApproval);
 
   const initial = props.mode === "edit" ? props.initial : null;
+  const currentStatus: PostStatus =
+    props.mode === "edit"
+      ? (initial?.status === "planning" ? "planning" : "pending")
+      : (props.initialStatus ?? "pending");
+  const isPlanning = currentStatus === "planning";
 
   const [type, setType] = useState<PostType>(initial?.type ?? "static");
   const [caption, setCaption] = useState<string>(initial?.caption ?? "");
@@ -117,17 +123,24 @@ export function PostForm(props: Props) {
   }
 
   async function submit() {
-    if (media.length === 0) return toast.error("Envie ao menos uma mídia.");
-    if (type === "video" && media[0].kind !== "video")
-      return toast.error("Selecione um vídeo (MP4/MOV).");
-    if (type !== "video" && media.some((m) => m.kind !== "image"))
-      return toast.error("Envie apenas imagens (JPG/PNG).");
-    if (type === "video" && !coverFile && !coverPath)
-      return toast.error("Vídeo requer uma capa.");
+    if (!isPlanning) {
+      if (media.length === 0) return toast.error("Envie ao menos uma mídia.");
+      if (type === "video" && media[0].kind !== "video")
+        return toast.error("Selecione um vídeo (MP4/MOV).");
+      if (type !== "video" && media.some((m) => m.kind !== "image"))
+        return toast.error("Envie apenas imagens (JPG/PNG).");
+      if (type === "video" && !coverFile && !coverPath)
+        return toast.error("Vídeo requer uma capa.");
+    } else {
+      // Em planejamento só validamos consistência do que foi enviado.
+      if (type === "video" && media.length > 0 && media[0].kind !== "video")
+        return toast.error("Selecione um vídeo (MP4/MOV).");
+      if (type !== "video" && media.some((m) => m.kind !== "image"))
+        return toast.error("Envie apenas imagens (JPG/PNG).");
+    }
 
     setSaving(true);
     try {
-      // upload novas mídias
       const uploaded = await Promise.all(
         media.map(async (m) => {
           if (m.path) return { path: m.path, kind: m.kind };
@@ -152,14 +165,37 @@ export function PostForm(props: Props) {
       };
 
       if (props.mode === "create") {
-        await createFn({ data: { ...payload, client_id: props.clientId } });
-        toast.success("Post criado!");
+        await createFn({
+          data: { ...payload, client_id: props.clientId, status: currentStatus },
+        });
+        toast.success(isPlanning ? "Rascunho salvo!" : "Post criado!");
       } else {
         await updateFn({ data: { ...payload, id: props.postId } });
-        toast.success("Post atualizado. Voltou para pendente.");
+        toast.success(
+          isPlanning ? "Rascunho atualizado." : "Post atualizado. Voltou para pendente.",
+        );
       }
       qc.invalidateQueries();
-      props.onSaved();
+      props.onSaved(currentStatus);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function release() {
+    if (props.mode !== "edit") return;
+    setSaving(true);
+    try {
+      const res = await releaseFn({ data: { id: props.postId } });
+      if (!res.ok) {
+        toast.error(`Faltam: ${res.missing.join(", ")}.`);
+        return;
+      }
+      toast.success("Post liberado para aprovação do cliente.");
+      qc.invalidateQueries();
+      props.onSaved("pending");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro");
     } finally {
