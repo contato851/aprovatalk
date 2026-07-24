@@ -41,24 +41,10 @@ function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold">Dashboard</h1>
+          <h1 className="font-display text-3xl font-bold">Calendário</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Todos os posts programados, por cliente e por data.
           </p>
-        </div>
-        <div className="flex gap-2 rounded-full border border-border bg-card p-1">
-          <button
-            onClick={() => setView("list")}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition ${view === "list" ? "bg-foreground text-background" : "text-muted-foreground"}`}
-          >
-            <LayoutList className="h-3.5 w-3.5" /> Lista
-          </button>
-          <button
-            onClick={() => setView("calendar")}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition ${view === "calendar" ? "bg-foreground text-background" : "text-muted-foreground"}`}
-          >
-            <CalendarDays className="h-3.5 w-3.5" /> Calendário
-          </button>
         </div>
       </div>
 
@@ -105,8 +91,6 @@ function DashboardPage() {
         <p className="text-sm text-muted-foreground">Carregando…</p>
       ) : posts.length === 0 ? (
         <EmptyState />
-      ) : view === "list" ? (
-        <ListView posts={posts as Post[]} />
       ) : (
         <CalendarView posts={posts as Post[]} />
       )}
