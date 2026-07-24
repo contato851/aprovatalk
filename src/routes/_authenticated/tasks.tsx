@@ -290,13 +290,22 @@ function TasksPage() {
                   {t.participants.map((pid) => {
                     const m = teamById[pid];
                     if (!m) return null;
+                    const avatar = AVATAR_BY_EMAIL[m.email.toLowerCase()];
                     return (
                       <div
                         key={pid}
                         title={m.name}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-muted text-[10px] font-semibold text-foreground"
+                        className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border-2 border-background bg-muted text-[10px] font-semibold text-foreground"
                       >
-                        {initials(m.name)}
+                        {avatar ? (
+                          <img
+                            src={avatar}
+                            alt={m.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          initials(m.name)
+                        )}
                       </div>
                     );
                   })}
