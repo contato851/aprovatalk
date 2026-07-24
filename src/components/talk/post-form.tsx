@@ -102,6 +102,47 @@ export function PostForm(props: Props) {
   );
   const [saving, setSaving] = useState(false);
 
+  // ---- Vínculo com entrega (Design/Edição) ----
+  const initialLinkKind: LinkKind = initial?.linked_design_slot_id
+    ? "design"
+    : initial?.linked_delivery_slot_id
+      ? "delivery"
+      : "none";
+  const [linkKind, setLinkKind] = useState<LinkKind>(initialLinkKind);
+  const [linkedSlotId, setLinkedSlotId] = useState<string | null>(
+    initial?.linked_design_slot_id ?? initial?.linked_delivery_slot_id ?? null,
+  );
+  const [slotOptions, setSlotOptions] = useState<any[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  useEffect(() => {
+    if (!isDraft || linkKind === "none") {
+      setSlotOptions([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setLoadingSlots(true);
+      try {
+        const res = await listSlotsFn({
+          data: {
+            slotType: linkKind,
+            includeId: linkedSlotId ?? null,
+          },
+        });
+        if (!cancelled) setSlotOptions(res ?? []);
+      } catch (e) {
+        if (!cancelled) setSlotOptions([]);
+      } finally {
+        if (!cancelled) setLoadingSlots(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkKind, isDraft]);
+
   const sensors = useSensors(useSensor(PointerSensor));
 
   function onFilesChosen(files: FileList | null) {
