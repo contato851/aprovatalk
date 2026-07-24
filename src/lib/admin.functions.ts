@@ -146,13 +146,13 @@ export const listPosts = createServerFn({ method: "GET" })
   .inputValidator((d: {
     clientId?: string;
     type?: "static" | "carousel" | "video";
-    status?: "pending" | "approved" | "rejected";
+    status?: "planning" | "pending" | "approved" | "rejected";
   }) =>
     z
       .object({
         clientId: z.string().uuid().optional(),
         type: z.enum(["static", "carousel", "video"]).optional(),
-        status: z.enum(["pending", "approved", "rejected"]).optional(),
+        status: z.enum(["planning", "pending", "approved", "rejected"]).optional(),
       })
       .parse(d ?? {}),
   )
