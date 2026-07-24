@@ -67,6 +67,9 @@ export function PostForm(props: Props) {
   const updateFn = useServerFn(updatePost);
   const releaseFn = useServerFn(releasePostForApproval);
   const listSlotsFn = useServerFn(listAvailableSlots);
+  const listDriveFn = useServerFn(listDriveFolder);
+  const importDriveFn = useServerFn(importDriveFiles);
+
 
   const initial = props.mode === "edit" ? props.initial : null;
   const currentStatus: PostStatus =
