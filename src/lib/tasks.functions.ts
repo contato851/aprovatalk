@@ -113,11 +113,24 @@ export const updateTask = createServerFn({ method: "POST" })
     return row;
   });
 
+export const getCurrentUserId = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => ({ userId: context.userId }));
+
 export const deleteTask = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
+    const { data: row, error: fetchErr } = await context.supabase
+      .from("tasks")
+      .select("created_by")
+      .eq("id", data.id)
+      .single();
+    if (fetchErr) throw fetchErr;
+    if (row?.created_by !== context.userId) {
+      throw new Error("Apenas quem criou a tarefa pode excluí-la.");
+    }
     const { error } = await context.supabase.from("tasks").delete().eq("id", data.id);
     if (error) throw error;
     return { ok: true };
