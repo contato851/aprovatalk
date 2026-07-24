@@ -208,14 +208,18 @@ export const createPost = createServerFn({ method: "POST" })
         caption: z.string().default(""),
         scheduled_at: z.string(),
         cover_path: z.string().nullable().optional(),
-        media: z.array(mediaItem).min(1),
+        media: z.array(mediaItem).default([]),
+        status: z.enum(["planning", "pending"]).default("pending"),
       })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
-    if (data.type === "video" && !data.cover_path) {
-      throw new Error("Vídeo requer capa.");
+    if (data.status === "pending") {
+      if (data.media.length === 0) throw new Error("Envie ao menos uma mídia.");
+      if (data.type === "video" && !data.cover_path) {
+        throw new Error("Vídeo requer capa.");
+      }
     }
     const { data: post, error } = await context.supabase
       .from("posts")
@@ -225,7 +229,7 @@ export const createPost = createServerFn({ method: "POST" })
         caption: data.caption,
         scheduled_at: data.scheduled_at,
         cover_url: data.cover_path ?? null,
-        status: "pending",
+        status: data.status,
         client_comment: null,
         responded_at: null,
       })
@@ -233,18 +237,24 @@ export const createPost = createServerFn({ method: "POST" })
       .single();
     if (error) throw error;
 
-    const rows = data.media.map((m, i) => ({
-      post_id: post.id,
-      url: m.path,
-      position: i,
-      kind: m.kind,
-    }));
-    const { error: mErr } = await context.supabase.from("post_media").insert(rows);
-    if (mErr) throw mErr;
+    if (data.media.length > 0) {
+      const rows = data.media.map((m, i) => ({
+        post_id: post.id,
+        url: m.path,
+        position: i,
+        kind: m.kind,
+      }));
+      const { error: mErr } = await context.supabase.from("post_media").insert(rows);
+      if (mErr) throw mErr;
+    }
     return post;
   });
 
-/** Atualiza post + substitui mídia. Sempre volta status para pending. */
+/**
+ * Atualiza post + substitui mídia.
+ * - Se o post estiver em "planning", permanece em "planning".
+ * - Caso contrário, volta para "pending" (mantém o fluxo atual de reedição).
+ */
 export const updatePost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
@@ -255,15 +265,30 @@ export const updatePost = createServerFn({ method: "POST" })
         caption: z.string().default(""),
         scheduled_at: z.string(),
         cover_path: z.string().nullable().optional(),
-        media: z.array(mediaItem).min(1),
+        media: z.array(mediaItem).default([]),
       })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
-    if (data.type === "video" && !data.cover_path) {
-      throw new Error("Vídeo requer capa.");
+
+    const { data: existing, error: exErr } = await context.supabase
+      .from("posts")
+      .select("status")
+      .eq("id", data.id)
+      .single();
+    if (exErr) throw exErr;
+
+    const keepPlanning = existing.status === "planning";
+    const nextStatus = keepPlanning ? "planning" : "pending";
+
+    if (!keepPlanning) {
+      if (data.media.length === 0) throw new Error("Envie ao menos uma mídia.");
+      if (data.type === "video" && !data.cover_path) {
+        throw new Error("Vídeo requer capa.");
+      }
     }
+
     const { error: uErr } = await context.supabase
       .from("posts")
       .update({
@@ -271,7 +296,7 @@ export const updatePost = createServerFn({ method: "POST" })
         caption: data.caption,
         scheduled_at: data.scheduled_at,
         cover_url: data.cover_path ?? null,
-        status: "pending",
+        status: nextStatus,
         responded_at: null,
       })
       .eq("id", data.id);
@@ -283,16 +308,69 @@ export const updatePost = createServerFn({ method: "POST" })
       .eq("post_id", data.id);
     if (dErr) throw dErr;
 
-    const rows = data.media.map((m, i) => ({
-      post_id: data.id,
-      url: m.path,
-      position: i,
-      kind: m.kind,
-    }));
-    const { error: iErr } = await context.supabase.from("post_media").insert(rows);
-    if (iErr) throw iErr;
+    if (data.media.length > 0) {
+      const rows = data.media.map((m, i) => ({
+        post_id: data.id,
+        url: m.path,
+        position: i,
+        kind: m.kind,
+      }));
+      const { error: iErr } = await context.supabase.from("post_media").insert(rows);
+      if (iErr) throw iErr;
+    }
 
-    return { ok: true };
+    return { ok: true, status: nextStatus };
+  });
+
+/**
+ * Valida e libera um post em "planning" para "pending" (aprovação do cliente).
+ * Retorna a lista de campos faltantes se algum obrigatório estiver ausente.
+ */
+export const releasePostForApproval = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+
+    const { data: post, error } = await context.supabase
+      .from("posts")
+      .select("id, type, caption, scheduled_at, cover_url, status, media:post_media(id, kind)")
+      .eq("id", data.id)
+      .single();
+    if (error) throw error;
+    if (post.status !== "planning") {
+      throw new Error("Este post não está em planejamento.");
+    }
+
+    const missing: string[] = [];
+    if (!post.scheduled_at) missing.push("data programada");
+    if (!post.caption || !post.caption.trim()) missing.push("legenda");
+
+    const mediaCount = (post.media ?? []).length;
+    if (post.type === "static") {
+      if (mediaCount < 1) missing.push("imagem");
+    } else if (post.type === "carousel") {
+      if (mediaCount < 2) missing.push("pelo menos 2 imagens do carrossel");
+    } else if (post.type === "video") {
+      if (mediaCount < 1) missing.push("vídeo");
+      if (!post.cover_url) missing.push("capa");
+    }
+
+    if (missing.length > 0) {
+      return { ok: false as const, missing };
+    }
+
+    const { error: uErr } = await context.supabase
+      .from("posts")
+      .update({
+        status: "pending",
+        client_comment: null,
+        responded_at: null,
+      })
+      .eq("id", data.id);
+    if (uErr) throw uErr;
+
+    return { ok: true as const };
   });
 
 export const deletePost = createServerFn({ method: "POST" })
