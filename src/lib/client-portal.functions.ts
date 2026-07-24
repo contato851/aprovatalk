@@ -5,6 +5,7 @@ const BUCKETS = {
   avatars: "avatars",
   media: "post-media",
   covers: "post-covers",
+  frames: "adjustment-frames",
 };
 const SIGNED_URL_TTL = 60 * 60 * 24 * 30;
 
@@ -13,6 +14,7 @@ async function signPath(admin: any, bucket: string, path: string | null) {
   const { data } = await admin.storage.from(bucket).createSignedUrl(path, SIGNED_URL_TTL);
   return data?.signedUrl ?? null;
 }
+
 
 async function notifyWhatsApp(message: string) {
   const rawPhone = process.env.CALLMEBOT_PHONE;
