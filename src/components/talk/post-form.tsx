@@ -211,17 +211,31 @@ export function PostForm(props: Props) {
       let finalCoverPath: string | null = coverPath;
       if (coverFile) finalCoverPath = await uploadToBucket("post-covers", coverFile);
 
+      const linkPayload = isDraft
+        ? {
+            linked_design_slot_id:
+              linkKind === "design" ? linkedSlotId : null,
+            linked_delivery_slot_id:
+              linkKind === "delivery" ? linkedSlotId : null,
+          }
+        : {};
+
       const payload = {
         type,
         caption,
         scheduled_at: new Date(scheduled).toISOString(),
         cover_path: finalCoverPath,
         media: uploaded,
+        ...linkPayload,
       };
 
       if (props.mode === "create") {
         await createFn({
-          data: { ...payload, client_id: props.clientId, status: currentStatus },
+          data: {
+            ...payload,
+            client_id: props.clientId,
+            status: currentStatus === "ready_for_review" ? "planning" : currentStatus,
+          },
         });
         toast.success(isPlanning ? "Rascunho salvo!" : "Post criado!");
       } else {
