@@ -106,10 +106,11 @@ function ClientDetail() {
         </div>
       </div>
 
-      <div className="flex gap-1 rounded-full border border-border bg-card p-1 w-fit">
+      <div className="flex flex-wrap gap-1 rounded-full border border-border bg-card p-1 w-fit">
         {(
           [
             { v: "planning", l: `Planejamento (${planning.length})` },
+            { v: "review", l: `Pronto p/ revisão (${review.length})` },
             { v: "approval", l: `Aprovação (${approval.length})` },
           ] as const
         ).map((t) => (
@@ -140,7 +141,9 @@ function ClientDetail() {
           <p className="mt-4 rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
             {tab === "planning"
               ? "Nenhum rascunho ainda. Crie um novo para começar o planejamento."
-              : "Nenhum post em aprovação."}
+              : tab === "review"
+                ? "Nenhum post aguardando revisão."
+                : "Nenhum post em aprovação."}
           </p>
         ) : (
           <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -149,6 +152,13 @@ function ClientDetail() {
                 p.cover_signed_url ??
                 (p.media?.[0]?.kind === "image" ? p.media[0].signed_url : null);
               const isPlanning = p.status === "planning";
+              const isReady = p.status === "ready_for_review";
+              const linkedSlot = p.linked_design_slot ?? p.linked_delivery_slot;
+              const linkedKind = p.linked_design_slot
+                ? "design"
+                : p.linked_delivery_slot
+                  ? "delivery"
+                  : null;
               return (
                 <div
                   key={p.id}
