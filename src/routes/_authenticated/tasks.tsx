@@ -457,18 +457,28 @@ function TaskDialog({
               {team.length === 0 && (
                 <p className="text-xs text-muted-foreground">Nenhum membro encontrado.</p>
               )}
-              {team.map((m) => (
-                <label
-                  key={m.id}
-                  className="flex cursor-pointer items-center gap-2 text-sm"
-                >
-                  <Checkbox
-                    checked={participants.includes(m.id)}
-                    onCheckedChange={() => toggleParticipant(m.id)}
-                  />
-                  <span>{m.name}</span>
-                </label>
-              ))}
+              {team.map((m) => {
+                const avatar = AVATAR_BY_EMAIL[m.email.toLowerCase()];
+                return (
+                  <label
+                    key={m.id}
+                    className="flex cursor-pointer items-center gap-2 text-sm"
+                  >
+                    <Checkbox
+                      checked={participants.includes(m.id)}
+                      onCheckedChange={() => toggleParticipant(m.id)}
+                    />
+                    <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-muted text-[10px] font-semibold">
+                      {avatar ? (
+                        <img src={avatar} alt={m.name} className="h-full w-full object-cover" />
+                      ) : (
+                        initials(m.name)
+                      )}
+                    </div>
+                    <span>{m.name}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         </div>
