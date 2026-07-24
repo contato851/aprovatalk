@@ -46,7 +46,8 @@ function emptySlot(date: string, index: number): Slot {
   };
 }
 
-export function DesignCalendar({ readOnly = false }: { readOnly?: boolean }) {
+export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean; token?: string }) {
+  const fetchByToken = useServerFn(getDesignSlotsByToken);
   const [cursor, setCursor] = useState<Date>(() => new Date());
   const [selectedDay, setSelectedDay] = useState<Date>(() => new Date());
   const [slotsByDate, setSlotsByDate] = useState<Record<string, Slot[]>>({});
@@ -73,23 +74,41 @@ export function DesignCalendar({ readOnly = false }: { readOnly?: boolean }) {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("design_slots" as any)
-        .select("*")
-        .gte("slot_date", fmtDate(monthStart))
-        .lte("slot_date", fmtDate(monthEnd));
+      let rows: any[] | null = null;
+      let error: any = null;
+      let preSigned: Record<string, string> | null = null;
+      if (token) {
+        try {
+          const res = await fetchByToken({
+            data: { token, monthStart: fmtDate(monthStart), monthEnd: fmtDate(monthEnd) },
+          });
+          rows = res.rows as any[];
+          preSigned = res.signedByPath;
+        } catch (e) {
+          error = e;
+        }
+      } else {
+        const res = await supabase
+          .from("design_slots" as any)
+          .select("*")
+          .gte("slot_date", fmtDate(monthStart))
+          .lte("slot_date", fmtDate(monthEnd));
+        rows = res.data as any[] | null;
+        error = res.error;
+      }
       if (cancelled) return;
       if (error) {
         console.error(error);
         setLoading(false);
         return;
       }
+      if (preSigned) setSignedUrls((prev) => ({ ...prev, ...preSigned }));
       const grouped: Record<string, Slot[]> = {};
       for (const d of days) {
         const key = fmtDate(d);
         grouped[key] = Array.from({ length: SLOTS_PER_DAY }, (_, i) => emptySlot(key, i));
       }
-      for (const row of (data as any[]) ?? []) {
+      for (const row of (rows as any[]) ?? []) {
         const key = row.slot_date as string;
         if (!grouped[key]) continue;
         grouped[key][row.slot_index] = {
