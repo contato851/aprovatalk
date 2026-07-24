@@ -136,7 +136,7 @@ export const importDriveFiles = createServerFn({ method: "POST" })
         );
       }
 
-      // download bytes
+      // download bytes — streaming direto para o Storage p/ evitar estourar memória
       const dlRes = await fetch(
         `${GATEWAY}/files/${fileId}?alt=media&supportsAllDrives=true`,
         { headers },
@@ -145,19 +145,24 @@ export const importDriveFiles = createServerFn({ method: "POST" })
         const body = await dlRes.text();
         throw new Error(`Drive download [${dlRes.status}]: ${body}`);
       }
-      const bytes = await dlRes.arrayBuffer();
+      if (!dlRes.body) throw new Error("Drive download sem body");
 
       const ext =
         (meta.name?.split(".").pop() || "").toLowerCase() ||
         (kind === "image" ? "jpg" : "mp4");
       const path = `${crypto.randomUUID()}.${ext}`;
 
+      // Para imagens buffer é ok (pequenas). Para vídeos, stream direto.
+      const payload: ArrayBuffer | ReadableStream<Uint8Array> =
+        kind === "image" ? await dlRes.arrayBuffer() : dlRes.body;
+
       const { error: upErr } = await supabaseAdmin.storage
         .from(data.bucket)
-        .upload(path, bytes, {
+        .upload(path, payload as any, {
           contentType: meta.mimeType,
           upsert: false,
-        });
+          duplex: "half",
+        } as any);
       if (upErr) throw upErr;
 
       const { data: signed } = await supabaseAdmin.storage
