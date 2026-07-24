@@ -514,7 +514,7 @@ export function PostForm(props: Props) {
                 onClick={() => goToCrumb(-1)}
                 disabled={driveLoading}
               >
-                <Home className="h-3.5 w-3.5" /> Meu Drive
+                <Home className="h-3.5 w-3.5" /> Drives compartilhados
               </button>
               {driveCrumbs.map((c, i) => (
                 <span key={c.id} className="inline-flex items-center gap-1">

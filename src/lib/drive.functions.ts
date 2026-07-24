@@ -183,7 +183,7 @@ export const importDriveFiles = createServerFn({ method: "POST" })
     return results;
   });
 
-/** Navega pelo Drive: lista pastas e arquivos filhos de um folderId (ou "root"). */
+/** Navega pelo Drive: lista Shared Drives na raiz e pastas/arquivos dentro. */
 export const browseDrive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { folderId?: string | null }) =>
@@ -193,8 +193,35 @@ export const browseDrive = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const headers = gatewayHeaders();
     const fields =
-      "id,name,mimeType,size,thumbnailLink,iconLink,modifiedTime,parents";
-    const folderId = (data.folderId?.trim() || "root");
+      "id,name,mimeType,size,thumbnailLink,iconLink,modifiedTime,parents,driveId";
+    const folderId = data.folderId?.trim() || null;
+
+    // Raiz → lista Shared Drives disponíveis
+    if (!folderId) {
+      const res = await fetch(
+        `${GATEWAY}/drives?pageSize=100&fields=${encodeURIComponent("drives(id,name)")}`,
+        { headers },
+      );
+      if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`Drive [${res.status}]: ${body}`);
+      }
+      const json = await res.json();
+      const drives = (json.drives ?? []) as any[];
+      const folders = drives.map((d) => ({
+        id: d.id,
+        name: d.name,
+        mimeType: "application/vnd.google-apps.folder",
+        isSharedDrive: true,
+      }));
+      return {
+        folderId: null,
+        currentName: null,
+        parentId: null,
+        folders,
+        files: [] as any[],
+      };
+    }
 
     const q = encodeURIComponent(
       `'${folderId}' in parents and trashed = false`,
@@ -203,7 +230,8 @@ export const browseDrive = createServerFn({ method: "POST" })
       `${GATEWAY}/files?q=${q}` +
       `&fields=${encodeURIComponent(`files(${fields})`)}` +
       `&pageSize=500&orderBy=folder,name` +
-      `&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+      `&supportsAllDrives=true&includeItemsFromAllDrives=true` +
+      `&corpora=allDrives`;
     const res = await fetch(url, { headers });
     if (!res.ok) {
       const body = await res.text();
@@ -220,17 +248,26 @@ export const browseDrive = createServerFn({ method: "POST" })
       return m.startsWith("image/") || m.startsWith("video/");
     });
 
+    // Metadados da pasta atual. Se for raiz de Shared Drive, /drives/{id}.
     let currentName: string | null = null;
     let parentId: string | null = null;
-    if (folderId !== "root") {
+    const driveMetaRes = await fetch(
+      `${GATEWAY}/drives/${folderId}?fields=id,name`,
+      { headers },
+    );
+    if (driveMetaRes.ok) {
+      const m = await driveMetaRes.json();
+      currentName = m.name ?? null;
+      parentId = null;
+    } else {
       const metaRes = await fetch(
-        `${GATEWAY}/files/${folderId}?fields=id,name,parents&supportsAllDrives=true`,
+        `${GATEWAY}/files/${folderId}?fields=id,name,parents,driveId&supportsAllDrives=true`,
         { headers },
       );
       if (metaRes.ok) {
         const m = await metaRes.json();
         currentName = m.name ?? null;
-        parentId = m.parents?.[0] ?? null;
+        parentId = m.parents?.[0] ?? m.driveId ?? null;
       }
     }
 
