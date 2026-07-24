@@ -160,13 +160,19 @@ export const importDriveFiles = createServerFn({ method: "POST" })
         });
       if (upErr) throw upErr;
 
+      const { data: signed } = await supabaseAdmin.storage
+        .from(data.bucket)
+        .createSignedUrl(path, 60 * 60 * 24 * 30);
+
       results.push({
         id: meta.id,
         name: meta.name,
         path,
         kind,
         mimeType: meta.mimeType,
+        signed_url: signed?.signedUrl ?? null,
       });
+
     }
 
     return results;
