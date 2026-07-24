@@ -215,7 +215,7 @@ export const listAvailableSlots = createServerFn({ method: "GET" })
       .not(linkCol, "is", null);
     if (lErr) throw lErr;
     const linkedIds = new Set<string>(
-      (linkedRows ?? [])
+      ((linkedRows ?? []) as any[])
         .map((r: any) => r[linkCol])
         .filter((v: any) => !!v && v !== data.includeId),
     );
