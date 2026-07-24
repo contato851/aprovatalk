@@ -43,11 +43,11 @@ export const Route = createFileRoute("/api/public/hooks/cleanup-media")({
         let deletedCoverFiles = 0;
 
         for (const post of posts ?? []) {
-          // Regra de segurança: nunca apaga mídia de posts pendentes
-          if (post.status === "pending") {
+          // Regra de segurança: nunca apaga mídia de rascunhos ou pendentes
+          if (post.status === "pending" || post.status === "planning") {
             skippedPending.push(post.id);
             console.log(
-              `[cleanup-media] IGNORADO (pendente) post=${post.id} scheduled_at=${post.scheduled_at}`,
+              `[cleanup-media] IGNORADO (${post.status}) post=${post.id} scheduled_at=${post.scheduled_at}`,
             );
             continue;
           }
