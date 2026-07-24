@@ -34,7 +34,8 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 type PostType = "static" | "carousel" | "video";
-type PostStatus = "planning" | "pending";
+type PostStatus = "planning" | "pending" | "ready_for_review";
+type LinkKind = "none" | "design" | "delivery";
 
 type MediaSlot = {
   id: string;
@@ -63,13 +64,19 @@ export function PostForm(props: Props) {
   const createFn = useServerFn(createPost);
   const updateFn = useServerFn(updatePost);
   const releaseFn = useServerFn(releasePostForApproval);
+  const listSlotsFn = useServerFn(listAvailableSlots);
 
   const initial = props.mode === "edit" ? props.initial : null;
   const currentStatus: PostStatus =
     props.mode === "edit"
-      ? (initial?.status === "planning" ? "planning" : "pending")
+      ? (initial?.status === "planning"
+          ? "planning"
+          : initial?.status === "ready_for_review"
+            ? "ready_for_review"
+            : "pending")
       : (props.initialStatus ?? "pending");
-  const isPlanning = currentStatus === "planning";
+  const isDraft = currentStatus === "planning" || currentStatus === "ready_for_review";
+  const isPlanning = isDraft; // manter compatibilidade com o resto do arquivo
 
   const [type, setType] = useState<PostType>(initial?.type ?? "static");
   const [caption, setCaption] = useState<string>(initial?.caption ?? "");
