@@ -108,10 +108,13 @@ function isOverdue(t: Task) {
 function TasksPage() {
   const listTasksFn = useServerFn(listTasks);
   const listTeamFn = useServerFn(listTeamMembers);
+  const getCurrentUserIdFn = useServerFn(getCurrentUserId);
   const qc = useQueryClient();
 
   const tasksQ = useQuery({ queryKey: ["tasks"], queryFn: () => listTasksFn() });
   const teamQ = useQuery({ queryKey: ["team-members"], queryFn: () => listTeamFn() });
+  const meQ = useQuery({ queryKey: ["me"], queryFn: () => getCurrentUserIdFn() });
+  const currentUserId = meQ.data?.userId ?? null;
 
   const [filter, setFilter] = useState<Filter>("all");
   const [participantFilter, setParticipantFilter] = useState<string>("all");
