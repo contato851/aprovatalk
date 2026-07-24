@@ -22,11 +22,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createPost, updatePost } from "@/lib/admin.functions";
+import { createPost, updatePost, releasePostForApproval } from "@/lib/admin.functions";
 import { uploadToBucket } from "@/lib/upload";
 import { resizeImageToExact } from "@/lib/image-resize";
 
 type PostType = "static" | "carousel" | "video";
+type PostStatus = "planning" | "pending";
 
 type MediaSlot = {
   id: string;
@@ -40,13 +41,14 @@ type Props =
   | {
       mode: "create";
       clientId: string;
-      onSaved: () => void;
+      initialStatus?: PostStatus;
+      onSaved: (status: PostStatus) => void;
     }
   | {
       mode: "edit";
       postId: string;
       initial: any;
-      onSaved: () => void;
+      onSaved: (status: PostStatus) => void;
     };
 
 export function PostForm(props: Props) {
