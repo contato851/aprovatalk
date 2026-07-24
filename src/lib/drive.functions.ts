@@ -182,3 +182,58 @@ export const importDriveFiles = createServerFn({ method: "POST" })
 
     return results;
   });
+
+/** Navega pelo Drive: lista pastas e arquivos filhos de um folderId (ou "root"). */
+export const browseDrive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { folderId?: string | null }) =>
+    z.object({ folderId: z.string().nullable().optional() }).parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const headers = gatewayHeaders();
+    const fields =
+      "id,name,mimeType,size,thumbnailLink,iconLink,modifiedTime,parents";
+    const folderId = (data.folderId?.trim() || "root");
+
+    const q = encodeURIComponent(
+      `'${folderId}' in parents and trashed = false`,
+    );
+    const url =
+      `${GATEWAY}/files?q=${q}` +
+      `&fields=${encodeURIComponent(`files(${fields})`)}` +
+      `&pageSize=500&orderBy=folder,name` +
+      `&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Drive [${res.status}]: ${body}`);
+    }
+    const json = await res.json();
+    const all = (json.files ?? []) as any[];
+
+    const folders = all.filter(
+      (f) => f.mimeType === "application/vnd.google-apps.folder",
+    );
+    const files = all.filter((f) => {
+      const m = f.mimeType ?? "";
+      return m.startsWith("image/") || m.startsWith("video/");
+    });
+
+    let currentName: string | null = null;
+    let parentId: string | null = null;
+    if (folderId !== "root") {
+      const metaRes = await fetch(
+        `${GATEWAY}/files/${folderId}?fields=id,name,parents&supportsAllDrives=true`,
+        { headers },
+      );
+      if (metaRes.ok) {
+        const m = await metaRes.json();
+        currentName = m.name ?? null;
+        parentId = m.parents?.[0] ?? null;
+      }
+    }
+
+    return { folderId, currentName, parentId, folders, files };
+  });
+
