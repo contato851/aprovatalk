@@ -261,11 +261,11 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
       </header>
 
       <main className="p-5">
-        <div className="text-center mb-6">
+        <div className="text-center mb-6 text-white">
           <h2 className="text-lg font-semibold capitalize">
             {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}
           </h2>
-          <span className="text-xs text-muted-foreground mt-1 block">
+          <span className="text-xs text-white/70 mt-1 block">
             Prazo automático: D+2 úteis ({format(addBusinessDays(selectedDay, 2), "dd/MM")})
           </span>
         </div>
