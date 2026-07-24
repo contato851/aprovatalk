@@ -83,6 +83,51 @@ export type Database = {
         }
         Relationships: []
       }
+      design_slots: {
+        Row: {
+          briefing: string
+          client: string
+          copy: string
+          created_at: string
+          done: boolean
+          folder_link: string
+          id: string
+          references_images: string[]
+          slot_date: string
+          slot_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          briefing?: string
+          client?: string
+          copy?: string
+          created_at?: string
+          done?: boolean
+          folder_link?: string
+          id?: string
+          references_images?: string[]
+          slot_date: string
+          slot_index: number
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          briefing?: string
+          client?: string
+          copy?: string
+          created_at?: string
+          done?: boolean
+          folder_link?: string
+          id?: string
+          references_images?: string[]
+          slot_date?: string
+          slot_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       post_adjustment_points: {
         Row: {
           created_at: string
