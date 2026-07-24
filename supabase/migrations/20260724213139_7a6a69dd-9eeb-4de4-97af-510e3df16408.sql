@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.on_slot_done_change() FROM PUBLIC, anon, authenticated;
