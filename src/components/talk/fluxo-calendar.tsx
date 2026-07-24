@@ -372,7 +372,7 @@ function Counter({ label, value, dotClass }: { label: string; value: number; dot
   return (
     <div className="flex items-center gap-2">
       <span className={cn("h-2.5 w-2.5 rounded-full", dotClass)} />
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-white/70">{label}</span>
       <span className="font-semibold tabular-nums">{value}</span>
     </div>
   );
