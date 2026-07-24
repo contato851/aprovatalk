@@ -346,9 +346,27 @@ export function PostForm(props: Props) {
         />
       </div>
 
-      <div className="flex justify-end gap-3 pt-4">
+      <div className="flex flex-wrap justify-end gap-3 pt-4">
+        {props.mode === "edit" && isPlanning && (
+          <Button
+            variant="outline"
+            onClick={release}
+            disabled={saving}
+            className="border-brand-chartreuse/50 text-emerald-800 hover:bg-brand-chartreuse-soft"
+          >
+            Liberar para aprovação
+          </Button>
+        )}
         <Button onClick={submit} disabled={saving}>
-          {saving ? "Salvando…" : props.mode === "create" ? "Criar post" : "Salvar e reenviar"}
+          {saving
+            ? "Salvando…"
+            : isPlanning
+              ? props.mode === "create"
+                ? "Salvar rascunho"
+                : "Salvar rascunho"
+              : props.mode === "create"
+                ? "Criar post"
+                : "Salvar e reenviar"}
         </Button>
       </div>
     </div>
