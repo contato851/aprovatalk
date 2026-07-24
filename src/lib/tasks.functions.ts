@@ -31,6 +31,7 @@ export const listTeamMembers = createServerFn({ method: "GET" })
       if (!u?.user) continue;
       const meta = (u.user.user_metadata ?? {}) as Record<string, any>;
       const email = u.user.email ?? "";
+      if (email.toLowerCase().includes("talkautenticidade")) continue;
       const nameFromMeta = meta.name || meta.full_name;
       const nameFromEmail = email.split("@")[0];
       const name = (nameFromMeta || nameFromEmail || "Usuário")
