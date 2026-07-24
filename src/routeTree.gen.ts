@@ -17,6 +17,7 @@ import { Route as AuthenticatedFluxoRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated/design'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients/index'
+import { Route as ApiPublicTmpCreateUsersRouteImport } from './routes/api/public/tmp-create-users'
 import { Route as AuthenticatedClientsClientIdIndexRouteImport } from './routes/_authenticated/clients/$clientId/index'
 import { Route as ApiPublicHooksCleanupMediaRouteImport } from './routes/api/public/hooks/cleanup-media'
 import { Route as AuthenticatedPostsPostIdEditRouteImport } from './routes/_authenticated/posts/$postId/edit'
@@ -62,6 +63,11 @@ const AuthenticatedClientsIndexRoute =
     path: '/clients/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicTmpCreateUsersRoute = ApiPublicTmpCreateUsersRouteImport.update({
+  id: '/api/public/tmp-create-users',
+  path: '/api/public/tmp-create-users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedClientsClientIdIndexRoute =
   AuthenticatedClientsClientIdIndexRouteImport.update({
     id: '/clients/$clientId/',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/c/$token': typeof CTokenRoute
+  '/api/public/tmp-create-users': typeof ApiPublicTmpCreateUsersRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/c/$token': typeof CTokenRoute
+  '/api/public/tmp-create-users': typeof ApiPublicTmpCreateUsersRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/_authenticated/design': typeof AuthenticatedDesignRoute
   '/_authenticated/fluxo': typeof AuthenticatedFluxoRoute
   '/c/$token': typeof CTokenRoute
+  '/api/public/tmp-create-users': typeof ApiPublicTmpCreateUsersRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
   '/_authenticated/posts/$postId/edit': typeof AuthenticatedPostsPostIdEditRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/design'
     | '/fluxo'
     | '/c/$token'
+    | '/api/public/tmp-create-users'
     | '/clients/'
     | '/clients/$clientId/new'
     | '/posts/$postId/edit'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/design'
     | '/fluxo'
     | '/c/$token'
+    | '/api/public/tmp-create-users'
     | '/clients'
     | '/clients/$clientId/new'
     | '/posts/$postId/edit'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/_authenticated/design'
     | '/_authenticated/fluxo'
     | '/c/$token'
+    | '/api/public/tmp-create-users'
     | '/_authenticated/clients/'
     | '/_authenticated/clients/$clientId/new'
     | '/_authenticated/posts/$postId/edit'
@@ -176,6 +188,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CTokenRoute: typeof CTokenRoute
+  ApiPublicTmpCreateUsersRoute: typeof ApiPublicTmpCreateUsersRoute
   ApiPublicHooksCleanupMediaRoute: typeof ApiPublicHooksCleanupMediaRoute
 }
 
@@ -237,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/tmp-create-users': {
+      id: '/api/public/tmp-create-users'
+      path: '/api/public/tmp-create-users'
+      fullPath: '/api/public/tmp-create-users'
+      preLoaderRoute: typeof ApiPublicTmpCreateUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/clients/$clientId/': {
       id: '/_authenticated/clients/$clientId/'
       path: '/clients/$clientId'
@@ -297,8 +317,19 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CTokenRoute: CTokenRoute,
+  ApiPublicTmpCreateUsersRoute: ApiPublicTmpCreateUsersRoute,
   ApiPublicHooksCleanupMediaRoute: ApiPublicHooksCleanupMediaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
