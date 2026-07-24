@@ -451,22 +451,29 @@ function FeedCard({
       </div>
 
       {!readOnly && (
-        <div className="grid grid-cols-2 gap-2 border-t border-border p-3">
-          <Button
-            onClick={approve}
-            disabled={busy}
-            className="gap-1.5 bg-brand-chartreuse text-emerald-950 hover:bg-brand-chartreuse/90"
-          >
-            <Check className="h-4 w-4" /> Aprovar
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setRejectOpen(true)}
-            disabled={busy}
-            className="gap-1.5 border-brand-purple/40 text-brand-purple hover:bg-brand-purple-soft"
-          >
-            <X className="h-4 w-4" /> Reprovar
-          </Button>
+        <div className="space-y-1.5 border-t border-border p-3">
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              onClick={approve}
+              disabled={busy || points.length > 0}
+              className="gap-1.5 bg-brand-chartreuse text-emerald-950 hover:bg-brand-chartreuse/90"
+            >
+              <Check className="h-4 w-4" /> Aprovar
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => (points.length > 0 ? reject() : setRejectOpen(true))}
+              disabled={busy}
+              className="gap-1.5 border-brand-purple/40 text-brand-purple hover:bg-brand-purple-soft"
+            >
+              <X className="h-4 w-4" /> Reprovar
+            </Button>
+          </div>
+          {points.length > 0 && (
+            <p className="text-[11px] leading-snug text-muted-foreground">
+              Há pontos de ajuste marcados — só é possível reprovar. A reprovação será enviada com os pontos, sem precisar de comentário.
+            </p>
+          )}
         </div>
       )}
 
