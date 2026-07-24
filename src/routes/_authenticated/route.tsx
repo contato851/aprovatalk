@@ -105,7 +105,7 @@ function AuthenticatedLayout() {
                 className="text-xs font-medium text-muted-foreground transition hover:text-foreground data-[status=active]:text-foreground md:text-sm"
                 activeProps={{ className: "text-foreground" }}
               >
-                Dashboard
+                Calendário
               </Link>
             )}
             {showEdicao && (
