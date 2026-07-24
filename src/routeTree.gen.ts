@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CTokenRouteImport } from './routes/c/$token'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedFluxoRouteImport } from './routes/_authenticated/fluxo'
 import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated/design'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -40,6 +41,11 @@ const CTokenRoute = CTokenRouteImport.update({
   id: '/c/$token',
   path: '/c/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFluxoRoute = AuthenticatedFluxoRouteImport.update({
   id: '/fluxo',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/design': typeof AuthenticatedDesignRoute
   '/_authenticated/fluxo': typeof AuthenticatedFluxoRoute
+  '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/design'
     | '/fluxo'
+    | '/tasks'
     | '/c/$token'
     | '/clients/'
     | '/clients/$clientId/new'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/design'
     | '/fluxo'
+    | '/tasks'
     | '/c/$token'
     | '/clients'
     | '/clients/$clientId/new'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/design'
     | '/_authenticated/fluxo'
+    | '/_authenticated/tasks'
     | '/c/$token'
     | '/_authenticated/clients/'
     | '/_authenticated/clients/$clientId/new'
@@ -208,6 +220,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/c/$token'
       preLoaderRoute: typeof CTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/fluxo': {
       id: '/_authenticated/fluxo'
@@ -272,6 +291,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDesignRoute: typeof AuthenticatedDesignRoute
   AuthenticatedFluxoRoute: typeof AuthenticatedFluxoRoute
+  AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedClientsClientIdNewRoute: typeof AuthenticatedClientsClientIdNewRoute
   AuthenticatedPostsPostIdEditRoute: typeof AuthenticatedPostsPostIdEditRoute
@@ -282,6 +302,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDesignRoute: AuthenticatedDesignRoute,
   AuthenticatedFluxoRoute: AuthenticatedFluxoRoute,
+  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedClientsClientIdNewRoute: AuthenticatedClientsClientIdNewRoute,
   AuthenticatedPostsPostIdEditRoute: AuthenticatedPostsPostIdEditRoute,

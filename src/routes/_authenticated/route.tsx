@@ -108,6 +108,15 @@ function AuthenticatedLayout() {
                 Calendário
               </Link>
             )}
+            {isAdmin && (
+              <Link
+                to="/tasks"
+                className="text-xs font-medium text-muted-foreground transition hover:text-foreground data-[status=active]:text-foreground md:text-sm"
+                activeProps={{ className: "text-foreground" }}
+              >
+                Tarefas
+              </Link>
+            )}
             {showEdicao && (
               <Link
                 to="/fluxo"
