@@ -28,7 +28,7 @@ import {
   releasePostForApproval,
   listAvailableSlots,
 } from "@/lib/admin.functions";
-import { listDriveFolder, importDriveFiles } from "@/lib/drive.functions";
+import { listDriveFolder, importDriveFiles, browseDrive } from "@/lib/drive.functions";
 import { uploadToBucket } from "@/lib/upload";
 import { resizeImageToExact } from "@/lib/image-resize";
 import { format, parseISO } from "date-fns";
@@ -69,6 +69,7 @@ export function PostForm(props: Props) {
   const listSlotsFn = useServerFn(listAvailableSlots);
   const listDriveFn = useServerFn(listDriveFolder);
   const importDriveFn = useServerFn(importDriveFiles);
+  const browseDriveFn = useServerFn(browseDrive);
 
 
   const initial = props.mode === "edit" ? props.initial : null;
@@ -121,29 +122,47 @@ export function PostForm(props: Props) {
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   // ---- Google Drive ----
-  const [driveUrl, setDriveUrl] = useState("");
-  const [driveFiles, setDriveFiles] = useState<any[]>([]);
-  const [driveLoading, setDriveLoading] = useState(false);
   const [driveOpen, setDriveOpen] = useState(false);
+  const [driveLoading, setDriveLoading] = useState(false);
+  const [driveFolders, setDriveFolders] = useState<any[]>([]);
+  const [driveFiles, setDriveFiles] = useState<any[]>([]);
+  const [driveCrumbs, setDriveCrumbs] = useState<{ id: string; name: string }[]>([]);
   const [importingIds, setImportingIds] = useState<Set<string>>(new Set());
 
-  async function loadDrive() {
-    if (!driveUrl.trim()) return;
+  async function openDriveFolder(folderId: string | null, crumbs: { id: string; name: string }[]) {
     setDriveLoading(true);
     try {
-      const res = await listDriveFn({ data: { url: driveUrl.trim() } });
-      const filtered = (res.files ?? []).filter((f: any) => {
-        const m = f.mimeType ?? "";
-        return m.startsWith("image/") || m.startsWith("video/");
-      });
-      setDriveFiles(filtered);
-      if (filtered.length === 0) toast.info("Nenhuma imagem/vídeo encontrada nesta pasta.");
+      const res = await browseDriveFn({ data: { folderId: folderId ?? null } });
+      setDriveFolders(res.folders ?? []);
+      setDriveFiles(res.files ?? []);
+      setDriveCrumbs(crumbs);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erro ao listar Drive");
+      toast.error(e instanceof Error ? e.message : "Erro ao abrir o Drive");
     } finally {
       setDriveLoading(false);
     }
   }
+
+  function enterFolder(f: { id: string; name: string }) {
+    openDriveFolder(f.id, [...driveCrumbs, { id: f.id, name: f.name }]);
+  }
+
+  function goToCrumb(idx: number) {
+    if (idx < 0) {
+      openDriveFolder(null, []);
+    } else {
+      const next = driveCrumbs.slice(0, idx + 1);
+      openDriveFolder(next[next.length - 1].id, next);
+    }
+  }
+
+  useEffect(() => {
+    if (driveOpen && driveFolders.length === 0 && driveFiles.length === 0 && driveCrumbs.length === 0 && !driveLoading) {
+      openDriveFolder(null, []);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [driveOpen]);
+
 
   async function importFromDrive(fileIds: string[], target: "media" | "cover") {
     if (fileIds.length === 0) return;
