@@ -26,12 +26,13 @@ import {
 } from "@/components/ui/dialog";
 import { TalkStar } from "@/components/talk/star";
 import { FluxoCalendar } from "@/components/talk/fluxo-calendar";
+import { DesignCalendar } from "@/components/talk/design-calendar";
 
 export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
 });
 
-type Tab = "planning" | "pending" | "approved" | "rejected" | "fluxo";
+type Tab = "planning" | "pending" | "approved" | "rejected" | "fluxo" | "design";
 
 function ClientFeed() {
   const { token } = Route.useParams();
@@ -102,6 +103,7 @@ function ClientFeed() {
               { v: "approved", l: "Aprovados" },
               { v: "rejected", l: "Reprovados" },
               { v: "fluxo", l: "Edição" },
+              { v: "design", l: "Design" },
             ] as { v: Tab; l: string }[]
           ).map((t) => (
             <button
@@ -122,6 +124,10 @@ function ClientFeed() {
       {tab === "fluxo" ? (
         <div className="mx-auto max-w-md px-4 py-6">
           <FluxoCalendar readOnly />
+        </div>
+      ) : tab === "design" ? (
+        <div className="mx-auto max-w-md px-4 py-6">
+          <DesignCalendar readOnly />
         </div>
       ) : (
         <div className="mx-auto max-w-md space-y-8 px-4 py-6">
