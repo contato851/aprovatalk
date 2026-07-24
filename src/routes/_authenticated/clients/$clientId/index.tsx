@@ -204,26 +204,38 @@ function ClientDetail() {
                         className={`absolute right-2 top-2 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
                           p.status === "planning"
                             ? "border-border bg-muted text-muted-foreground"
-                            : p.status === "approved"
-                              ? "border-brand-chartreuse/30 bg-brand-chartreuse-soft text-emerald-700"
-                              : p.status === "rejected"
-                                ? "border-brand-purple/30 bg-brand-purple-soft text-brand-purple"
-                                : "border-brand-orange/30 bg-brand-orange-soft text-brand-orange"
+                            : p.status === "ready_for_review"
+                              ? "border-brand-purple/40 bg-brand-purple text-white"
+                              : p.status === "approved"
+                                ? "border-brand-chartreuse/30 bg-brand-chartreuse-soft text-emerald-700"
+                                : p.status === "rejected"
+                                  ? "border-brand-purple/30 bg-brand-purple-soft text-brand-purple"
+                                  : "border-brand-orange/30 bg-brand-orange-soft text-brand-orange"
                         }`}
                       >
                         {p.status === "planning"
                           ? "Planejamento"
-                          : p.status === "approved"
-                            ? "Aprovado"
-                            : p.status === "rejected"
-                              ? "Reprovado"
-                              : "Pendente"}
+                          : p.status === "ready_for_review"
+                            ? "Pronto p/ revisão"
+                            : p.status === "approved"
+                              ? "Aprovado"
+                              : p.status === "rejected"
+                                ? "Reprovado"
+                                : "Pendente"}
                       </span>
                     </div>
                     <div className="p-3">
                       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
                         {format(parseISO(p.scheduled_at), "dd/MM 'às' HH'h'", { locale: ptBR })}
                       </div>
+                      {linkedSlot && (
+                        <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-brand-purple-soft px-1.5 py-0.5 text-[10px] font-medium text-brand-purple">
+                          {linkedKind === "design" ? "🎨 Design" : "🎬 Edição"}
+                          {linkedSlot.slot_date &&
+                            ` · ${format(parseISO(linkedSlot.slot_date), "dd/MM", { locale: ptBR })}`}
+                          {linkedSlot.done ? " ✓" : ""}
+                        </div>
+                      )}
                       <p className="mt-1 line-clamp-2 text-sm">{p.caption || "—"}</p>
                       {p.status === "rejected" && p.client_comment && (
                         <p className="mt-2 rounded-md bg-brand-purple-soft p-2 text-xs text-brand-purple">
@@ -232,7 +244,7 @@ function ClientDetail() {
                       )}
                     </div>
                   </Link>
-                  {isPlanning && (
+                  {(isPlanning || isReady) && (
                     <div className="border-t border-border p-2">
                       <button
                         onClick={() => handleRelease(p.id)}
