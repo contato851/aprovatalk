@@ -1,79 +1,70 @@
-## Talk — Sistema de Aprovação de Posts
+# Aba "Planejamento" — rascunhos antes da aprovação
 
-Um sistema web com dois ambientes (admin da Talk e cliente) para revisar e aprovar posts de Instagram, com Supabase para auth, banco e storage de mídia.
+## 1. Banco de dados (migração)
 
-### Identidade visual
-- Fundo branco, tipografia limpa, estilo minimalista.
-- Acentos: laranja (pendente/CTA), verde-chartreuse (aprovado), roxo (reprovado).
-- Estrela de 8 pontas como detalhe sutil no header e em empty states.
-- Design tokens em `src/styles.css` (oklch), variantes customizadas de shadcn.
+- Adicionar valor `'planning'` ao enum `post_status` (antes de `'pending'`).
+- Alterar o default da coluna `posts.status` para `'planning'` (novos posts nascem em rascunho).
+- Nenhuma outra tabela muda; `post_media`, `post_adjustment_points`, capa e legenda continuam funcionando normalmente para posts em planejamento (todos os campos ficam opcionais na UI, mas o schema já permite).
 
-### Backend (Lovable Cloud / Supabase)
+## 2. Server functions (admin)
 
-**Tabelas**
-- `clients`: id, name, instagram_handle, avatar_url, status ('active'|'inactive'), access_token (uuid único p/ link mágico), created_at.
-- `posts`: id, client_id, type ('static'|'carousel'|'video'), cover_url (nullable exceto p/ vídeo), caption (text), scheduled_at (timestamptz), status ('pending'|'approved'|'rejected'), client_comment, responded_at, created_at, updated_at.
-- `post_media`: id, post_id, url, position (int), kind ('image'|'video').
-- `user_roles` + enum `app_role ('admin')` + função `has_role` (padrão Lovable).
+Em `src/lib/admin.functions.ts`:
 
-**Storage buckets**
-- `avatars` (público)
-- `post-media` (público — feed do cliente carrega direto por URL)
-- `post-covers` (público)
+- `createPost` / `updatePost`: aceitar `status: 'planning' | 'pending'`. Quando o form for salvo pela aba Planejamento, gravar `planning`. Editar um post existente mantém o status atual (não força volta para pending como hoje) — apenas edição de post `rejected` continua voltando para `pending`.
+- Nova fn `releasePostForApproval({ id })`: carrega o post + mídia; valida obrigatórios:
+  - `scheduled_at` presente
+  - `caption` não vazio
+  - pelo menos 1 mídia final (`post_media`) coerente com `type` (static=1 imagem, carousel≥2 imagens, video=1 vídeo)
+  - `cover_url` obrigatório quando `type='video'`
+  Se faltar algo, retorna `{ ok: false, missing: string[] }`. Se ok, seta `status='pending'`, limpa `client_comment` e `responded_at`.
+- `getClientPosts` (ou equivalente que abastece a página do cliente no admin) já retorna todos os status; só precisamos separar por status na UI.
 
-**RLS**
-- `clients`, `posts`, `post_media`: admins (has_role) têm acesso total.
-- Cliente NÃO usa auth Supabase. Acesso ao ambiente do cliente via `access_token` na URL; leituras/updates de aprovação passam por **server functions** que validam o token (não expõem RLS pública ampla). Policies restritas: leitura pública apenas via server function usando service role.
+## 3. Server function (cliente)
 
-### Ambiente Admin (`/_authenticated/*`)
-- Auth: email/senha via Lovable Cloud; primeiro usuário vira admin (seed manual ou auto-promote do primeiro cadastro).
-- `/auth`: login.
-- `/dashboard`: visão geral com dois modos (lista agrupada por cliente / calendário mensal). Filtros: cliente, tipo, status. Badges de status coloridos.
-- `/clients`: CRUD de clientes (nome, @, avatar upload, ativo/inativo). Botão "Copiar link do cliente" (gera URL `/c/:token`).
-- `/clients/:id`: detalhe do cliente + lista de posts + botão "Novo post".
-- `/clients/:id/posts/new` e `/posts/:id/edit`:
-  - Seletor de tipo (estático/carrossel/vídeo).
-  - Upload de mídia (dropzone). Carrossel com reordenação drag-and-drop (dnd-kit).
-  - Upload de capa (obrigatório se vídeo).
-  - Legenda (textarea, preserva quebras/emojis).
-  - Date/time picker para `scheduled_at`.
-- Card de post exibe comentário de reprovação destacado em roxo. Editar → status volta a `pending`.
+Em `src/lib/client-portal.functions.ts`:
 
-### Ambiente Cliente (`/c/:token`)
-- Rota pública, sem login Supabase. Server function `getClientByToken` valida o token e retorna cliente + posts.
-- Layout mobile-first estilo Instagram: header (avatar + @cliente + estrela decorativa), abas "Pendentes / Aprovados / Reprovados".
-- Cards de post:
-  - Estático: imagem única.
-  - Carrossel: swipe (embla-carousel) + bolinhas.
-  - Vídeo: `<video>` com `poster={cover_url}`.
-  - Seção separada mostrando a **capa** do post e a **legenda** completa.
-- Ações:
-  - **Aprovar** → server function `approvePost({token, postId})` → toast: "Aprovado! Este post será publicado em DD/MM às HHh".
-  - **Reprovar** → modal com textarea obrigatório "Deixe seu comentário" → `rejectPost({token, postId, comment})`.
+- `getClientPortal` já retorna todos os posts; a UI vai filtrar por status. Não expõe nenhuma ação nova ao cliente — posts `planning` são somente-leitura.
 
-### Regras de negócio
-- Posts ordenados por `scheduled_at` ASC (mais próximos primeiro).
-- Reprovado + editado no admin → `status='pending'`, `client_comment` preservado como histórico (mas card do cliente volta à aba Pendentes).
-- Cliente só aprova/reprova; não edita mídia/legenda.
-- Uploads: imagens JPG/PNG, vídeo MP4/MOV (validação no cliente + no server function).
+## 4. UI admin — `src/routes/_authenticated/clients/$clientId/index.tsx`
 
-### Stack técnica
-- TanStack Start + Supabase (Lovable Cloud).
-- Server functions para todas as operações de admin (com `requireSupabaseAuth` + `has_role`) e para operações do cliente por token (sem auth, validação por token).
-- shadcn/ui, dnd-kit (reordenação), embla-carousel (swipe), date-fns.
-- Design system em `src/styles.css`.
+- Adicionar tabs no topo da página do cliente:
+  - **Planejamento** (posts com status `planning`)
+  - **Aprovação** (posts `pending` + `approved` + `rejected` — mantém o comportamento atual)
+- Botão "+ Novo post" passa a criar por padrão em `planning` quando a aba ativa for Planejamento; na aba Aprovação continua criando como `pending` (comportamento atual).
+- Cards de Planejamento: mesma miniatura 3/4, badge cinza "Planejamento", e um botão **"Liberar para aprovação"**.
+  - Ao clicar chama `releasePostForApproval`. Se `missing` vier populado, toast de erro listando os campos ("Faltam: capa, legenda"). Se ok, toast de sucesso e o post desaparece da aba Planejamento e aparece em Aprovação/Pendentes.
+- Ordenação: por `scheduled_at` asc, igual ao feed atual.
 
-### Ordem de execução
-1. Habilitar Lovable Cloud.
-2. Migração: enum, tabelas, RLS, função `has_role`, buckets, policies de storage.
-3. Design system + shell + auth admin.
-4. CRUD de clientes + geração de link.
-5. Cadastro/edição de posts (upload, reordenação, capa).
-6. Dashboard (lista + calendário).
-7. Ambiente do cliente (feed + aprovação).
-8. Polimento mobile e estados vazios com a estrela.
+## 5. UI admin — `PostForm` (`src/components/talk/post-form.tsx`)
 
-### Perguntas rápidas antes de começar
-1. **Primeiro admin**: quer que eu configure o primeiro cadastro para virar admin automaticamente, ou prefere que eu deixe apenas login (você me passa o email e eu promovo via migration)?
-2. **Link do cliente**: token opaco na URL (`/c/abc123...`) é suficiente, ou quer também um código curto de 6 dígitos como alternativa?
-3. **Notificações**: quando o cliente aprova/reprova, precisa disparar email para a equipe da Talk agora, ou fica só visível no dashboard?
+- Aceitar prop opcional `initialStatus?: 'planning' | 'pending'` para o modo `create`.
+- Em modo Planejamento: todos os campos ficam opcionais no client-side (sem `required`), botão principal fica "Salvar rascunho". Data programada pode ficar vazia (usa `now()` como placeholder para permitir salvar). Mídia opcional.
+- Em modo Aprovação: comportamento atual (obrigatórios como hoje).
+- No modo `edit`, se o post estiver em `planning`, exibe a mesma UI relaxada + botão extra "Liberar para aprovação".
+
+## 6. UI cliente — `src/routes/c/$token.tsx`
+
+- Adicionar uma quarta aba **Planejamento** ao lado de Pendentes / Aprovados / Reprovados.
+- Renderizar posts `planning` como lista simples por data (`dd 'de' MMM · HH'h'mm`), com:
+  - miniatura (se tiver mídia final ou capa)
+  - legenda (se tiver) ou "—"
+  - tag visual "Em produção" (badge chartreuse suave)
+  - **sem** botões aprovar/reprovar, sem player de vídeo com pontos de ajuste, sem diálogos.
+- Ordem: `scheduled_at` asc.
+
+## 7. Detalhes técnicos
+
+- Enum change: `ALTER TYPE public.post_status ADD VALUE IF NOT EXISTS 'planning' BEFORE 'pending';` seguido de `ALTER TABLE public.posts ALTER COLUMN status SET DEFAULT 'planning';`. Postgres exige que `ALTER TYPE ... ADD VALUE` rode fora de transação — a ferramenta de migração lida com isso; se falhar, dividir em duas migrações.
+- Rotina de limpeza de mídia (`cleanup-media`) atualmente ignora `pending`; ajustar para também ignorar `planning` (rascunho não deve ter mídia apagada por idade).
+- Validação de `releasePostForApproval` roda no servidor com `supabaseAdmin` dentro do handler.
+- Nenhuma mudança em RLS/GRANT — políticas atuais já cobrem admin (via `has_role`) e o cliente lê via token no servidor.
+
+## Arquivos afetados
+
+- migração Supabase (enum + default + cleanup)
+- `src/lib/admin.functions.ts`
+- `src/lib/client-portal.functions.ts` (apenas garantir que retorna `planning` também — provavelmente sem alteração)
+- `src/components/talk/post-form.tsx`
+- `src/routes/_authenticated/clients/$clientId/index.tsx`
+- `src/routes/c/$token.tsx`
+- `src/routes/api/public/hooks/cleanup-media.ts`
