@@ -6,7 +6,9 @@ const BUCKETS = {
   avatars: "avatars",
   media: "post-media",
   covers: "post-covers",
+  frames: "adjustment-frames",
 } as const;
+
 
 const SIGNED_URL_TTL = 60 * 60 * 24 * 30; // 30 dias
 
