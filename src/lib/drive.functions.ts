@@ -191,14 +191,14 @@ async function assertInsideAllowedRoot(folderId: string, headers: Record<string,
   if (folderId === ALLOWED_ROOT_ID) return;
   let currentId: string | null = folderId;
   for (let i = 0; i < 20 && currentId; i++) {
-    const res = await fetch(
+    const res: Response = await fetch(
       `${GATEWAY}/files/${currentId}?fields=id,parents,driveId&supportsAllDrives=true`,
       { headers },
     );
     if (!res.ok) break;
-    const m = await res.json();
+    const m: any = await res.json();
     if (m.driveId === ALLOWED_ROOT_ID) return;
-    const parent = m.parents?.[0] ?? null;
+    const parent: string | null = m.parents?.[0] ?? null;
     if (parent === ALLOWED_ROOT_ID) return;
     currentId = parent;
   }
