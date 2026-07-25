@@ -106,7 +106,7 @@ function ClientDetail() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1 rounded-full border border-border bg-card p-1 w-fit">
+      <div className="flex flex-col gap-1 rounded-2xl border border-border bg-card p-1 w-full sm:flex-row sm:flex-wrap sm:rounded-full sm:w-fit">
         {(
           [
             { v: "planning", l: `Planejamento (${planning.length})` },
@@ -123,7 +123,7 @@ function ClientDetail() {
                 search: { tab: t.v },
               })
             }
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+            className={`w-full rounded-full px-4 py-1.5 text-sm font-medium transition sm:w-auto ${
               tab === t.v
                 ? "bg-foreground text-background"
                 : "text-muted-foreground hover:text-foreground"
