@@ -485,24 +485,33 @@ export function PostForm(props: Props) {
         )}
       </div>
 
-      {/* Google Drive importer */}
+      {/* Google Drive importer — botão que abre popup */}
       <div className="rounded-2xl border border-dashed border-brand-chartreuse/50 bg-brand-chartreuse-soft/30 p-4">
-        <button
+        <Button
           type="button"
-          onClick={() => setDriveOpen((v) => !v)}
-          className="flex w-full items-center justify-between text-left"
+          onClick={() => setDriveOpen(true)}
+          className="w-full bg-emerald-700 text-white hover:bg-emerald-800"
         >
-          <span className="flex items-center gap-2 text-sm font-medium text-emerald-900">
-            <FolderInput className="h-4 w-4" /> Importar do Google Drive
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {driveOpen ? "ocultar" : "abrir"}
-          </span>
-        </button>
-        {driveOpen && (
-          <div className="mt-3 space-y-3">
+          <FolderInput className="mr-2 h-4 w-4" />
+          Abrir Google Drive (CLIENTES TALK!)
+        </Button>
+        <p className="mt-2 text-center text-[11px] text-emerald-900/70">
+          Navegue pelas pastas dos clientes e escolha imagens ou vídeos.
+        </p>
+      </div>
+
+      <Dialog open={driveOpen} onOpenChange={setDriveOpen}>
+        <DialogContent className="max-h-[90vh] max-w-5xl overflow-hidden p-0">
+          <DialogHeader className="border-b bg-brand-chartreuse-soft/40 px-6 py-4">
+            <DialogTitle className="flex items-center gap-2 text-emerald-900">
+              <FolderInput className="h-5 w-5" />
+              Google Drive — CLIENTES TALK!
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4 overflow-y-auto px-6 py-4" style={{ maxHeight: "calc(90vh - 140px)" }}>
             {/* Breadcrumb */}
-            <div className="flex flex-wrap items-center gap-1 text-xs text-emerald-900">
+            <div className="sticky top-0 z-10 -mx-6 -mt-4 flex flex-wrap items-center gap-1 border-b bg-white/95 px-6 py-2 text-xs text-emerald-900 backdrop-blur">
               {driveCrumbs.length > 0 && (
                 <Button
                   type="button"
@@ -528,7 +537,7 @@ export function PostForm(props: Props) {
                   <ChevronRight className="h-3 w-3 opacity-60" />
                   <button
                     type="button"
-                    className="rounded px-2 py-1 hover:bg-emerald-900/10 font-medium"
+                    className="rounded px-2 py-1 font-medium hover:bg-emerald-900/10"
                     onClick={() => goToCrumb(i)}
                     disabled={driveLoading}
                   >
@@ -543,16 +552,16 @@ export function PostForm(props: Props) {
 
             {/* Folders */}
             {driveFolders.length > 0 && (
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {driveFolders.map((f) => (
                   <button
                     key={f.id}
                     type="button"
                     onClick={() => enterFolder({ id: f.id, name: f.name })}
                     disabled={driveLoading}
-                    className="flex items-center gap-2 rounded-lg border border-border bg-card p-2 text-left text-xs hover:border-brand-chartreuse hover:bg-brand-chartreuse-soft/40 disabled:opacity-60"
+                    className="flex items-center gap-2 rounded-lg border border-border bg-card p-3 text-left text-xs hover:border-brand-chartreuse hover:bg-brand-chartreuse-soft/40 disabled:opacity-60"
                   >
-                    <Folder className="h-4 w-4 shrink-0 text-emerald-700" />
+                    <Folder className="h-5 w-5 shrink-0 text-emerald-700" />
                     <span className="line-clamp-2" title={f.name}>{f.name}</span>
                   </button>
                 ))}
@@ -563,70 +572,70 @@ export function PostForm(props: Props) {
             {driveFiles.length > 0 && (
               <>
                 <p className="text-xs text-emerald-900/80">
-                  ⬇️ Clique em <strong>Adicionar ao post</strong> em cada arquivo que quiser usar. O tipo do post é ajustado automaticamente (vídeo → Reels, várias imagens → Carrossel).
+                  Clique em <strong>Adicionar ao post</strong> em cada arquivo desejado. O tipo do post ajusta automaticamente (vídeo → Reels, várias imagens → Carrossel).
                 </p>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                {driveFiles.map((f) => {
-                  const busy = importingIds.has(f.id);
-                  const isImage = f.mimeType?.startsWith("image/");
-                  return (
-                    <div
-                      key={f.id}
-                      className="flex flex-col gap-2 rounded-lg border border-border bg-card p-2"
-                    >
-                      <div className="aspect-square w-full overflow-hidden rounded-md bg-muted">
-                        {f.thumbnailLink ? (
-                          <img
-                            src={f.thumbnailLink}
-                            alt={f.name}
-                            className="h-full w-full object-cover"
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                            {isImage ? "IMG" : "VIDEO"}
-                          </div>
-                        )}
-                      </div>
-                      <p className="line-clamp-2 text-xs" title={f.name}>
-                        {f.name}
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        <Button
-                          type="button"
-                          size="sm"
-                          className="h-8 flex-1 bg-brand-orange text-xs text-white hover:bg-brand-orange/90"
-                          disabled={busy}
-                          onClick={() => importFromDrive([f.id], "media")}
-                        >
-                          {busy ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                  {driveFiles.map((f) => {
+                    const busy = importingIds.has(f.id);
+                    const isImage = f.mimeType?.startsWith("image/");
+                    return (
+                      <div
+                        key={f.id}
+                        className="flex flex-col gap-2 rounded-lg border border-border bg-card p-2"
+                      >
+                        <div className="aspect-square w-full overflow-hidden rounded-md bg-muted">
+                          {f.thumbnailLink ? (
+                            <img
+                              src={f.thumbnailLink}
+                              alt={f.name}
+                              className="h-full w-full object-cover"
+                              referrerPolicy="no-referrer"
+                            />
                           ) : (
-                            "Adicionar ao post"
+                            <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                              {isImage ? "IMG" : "VIDEO"}
+                            </div>
                           )}
-                        </Button>
-                        {type === "video" && isImage && (
+                        </div>
+                        <p className="line-clamp-2 text-xs" title={f.name}>
+                          {f.name}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
                           <Button
                             type="button"
                             size="sm"
-                            variant="outline"
-                            className="h-8 text-xs"
+                            className="h-8 flex-1 bg-brand-orange text-xs text-white hover:bg-brand-orange/90"
                             disabled={busy}
-                            onClick={() => importFromDrive([f.id], "cover")}
+                            onClick={() => importFromDrive([f.id], "media")}
                           >
-                            Capa
+                            {busy ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              "Adicionar ao post"
+                            )}
                           </Button>
-                        )}
+                          {type === "video" && isImage && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs"
+                              disabled={busy}
+                              onClick={() => importFromDrive([f.id], "cover")}
+                            >
+                              Capa
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
                 </div>
               </>
             )}
 
             {!driveLoading && driveFolders.length === 0 && driveFiles.length === 0 && (
-              <p className="text-xs text-emerald-900/70">
+              <p className="py-8 text-center text-xs text-emerald-900/70">
                 Esta pasta está vazia (ou não contém imagens/vídeos).
               </p>
             )}
@@ -649,8 +658,15 @@ export function PostForm(props: Props) {
               </Button>
             )}
           </div>
-        )}
-      </div>
+
+          <DialogFooter className="border-t bg-muted/30 px-6 py-3">
+            <Button type="button" variant="outline" onClick={() => setDriveOpen(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
 
 
