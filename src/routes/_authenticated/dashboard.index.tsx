@@ -48,7 +48,7 @@ function DashboardPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 rounded-2xl border border-border bg-card p-4">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 sm:flex-row sm:flex-wrap">
         <FilterSelect
           value={filters.clientId ?? ""}
           onChange={(v) =>
@@ -110,14 +110,14 @@ function FilterSelect({
   options: { value: string; label: string }[];
 }) {
   return (
-    <label className="flex flex-col gap-1">
+    <label className="flex w-full flex-col gap-1 sm:w-auto">
       <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+        className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm sm:w-auto"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
