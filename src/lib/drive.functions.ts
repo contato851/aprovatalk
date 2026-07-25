@@ -183,7 +183,29 @@ export const importDriveFiles = createServerFn({ method: "POST" })
     return results;
   });
 
-/** Navega pelo Drive: lista Shared Drives na raiz e pastas/arquivos dentro. */
+/** Raiz permitida no navegador do Drive (pasta "CLIENTES TALK!"). */
+const ALLOWED_ROOT_ID = "0AHPUmUsL6V9YUk9PVA";
+
+/** Verifica se `folderId` é a raiz permitida ou está dentro dela. */
+async function assertInsideAllowedRoot(folderId: string, headers: Record<string, string>) {
+  if (folderId === ALLOWED_ROOT_ID) return;
+  let currentId: string | null = folderId;
+  for (let i = 0; i < 20 && currentId; i++) {
+    const res: Response = await fetch(
+      `${GATEWAY}/files/${currentId}?fields=id,parents,driveId&supportsAllDrives=true`,
+      { headers },
+    );
+    if (!res.ok) break;
+    const m: any = await res.json();
+    if (m.driveId === ALLOWED_ROOT_ID) return;
+    const parent: string | null = m.parents?.[0] ?? null;
+    if (parent === ALLOWED_ROOT_ID) return;
+    currentId = parent;
+  }
+  throw new Error("Pasta fora do escopo permitido.");
+}
+
+/** Navega pelo Drive: sempre dentro da pasta permitida (CLIENTES TALK!). */
 export const browseDrive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { folderId?: string | null }) =>
@@ -194,34 +216,9 @@ export const browseDrive = createServerFn({ method: "POST" })
     const headers = gatewayHeaders();
     const fields =
       "id,name,mimeType,size,thumbnailLink,iconLink,modifiedTime,parents,driveId";
-    const folderId = data.folderId?.trim() || null;
+    const folderId = data.folderId?.trim() || ALLOWED_ROOT_ID;
 
-    // Raiz → lista Shared Drives disponíveis
-    if (!folderId) {
-      const res = await fetch(
-        `${GATEWAY}/drives?pageSize=100&fields=${encodeURIComponent("drives(id,name)")}`,
-        { headers },
-      );
-      if (!res.ok) {
-        const body = await res.text();
-        throw new Error(`Drive [${res.status}]: ${body}`);
-      }
-      const json = await res.json();
-      const drives = (json.drives ?? []) as any[];
-      const folders = drives.map((d) => ({
-        id: d.id,
-        name: d.name,
-        mimeType: "application/vnd.google-apps.folder",
-        isSharedDrive: true,
-      }));
-      return {
-        folderId: null,
-        currentName: null,
-        parentId: null,
-        folders,
-        files: [] as any[],
-      };
-    }
+    await assertInsideAllowedRoot(folderId, headers);
 
     const q = encodeURIComponent(
       `'${folderId}' in parents and trashed = false`,
@@ -248,16 +245,20 @@ export const browseDrive = createServerFn({ method: "POST" })
       return m.startsWith("image/") || m.startsWith("video/");
     });
 
-    // Metadados da pasta atual. Se for raiz de Shared Drive, /drives/{id}.
+    // Metadados da pasta atual. Se for raiz do Shared Drive, /drives/{id}.
     let currentName: string | null = null;
     let parentId: string | null = null;
-    const driveMetaRes = await fetch(
-      `${GATEWAY}/drives/${folderId}?fields=id,name`,
-      { headers },
-    );
-    if (driveMetaRes.ok) {
-      const m = await driveMetaRes.json();
-      currentName = m.name ?? null;
+    if (folderId === ALLOWED_ROOT_ID) {
+      const driveMetaRes = await fetch(
+        `${GATEWAY}/drives/${folderId}?fields=id,name`,
+        { headers },
+      );
+      if (driveMetaRes.ok) {
+        const m = await driveMetaRes.json();
+        currentName = m.name ?? "CLIENTES TALK!";
+      } else {
+        currentName = "CLIENTES TALK!";
+      }
       parentId = null;
     } else {
       const metaRes = await fetch(
@@ -267,10 +268,13 @@ export const browseDrive = createServerFn({ method: "POST" })
       if (metaRes.ok) {
         const m = await metaRes.json();
         currentName = m.name ?? null;
-        parentId = m.parents?.[0] ?? m.driveId ?? null;
+        const p = m.parents?.[0] ?? null;
+        // Se o parent for o próprio driveId (shared drive), volta para a raiz permitida.
+        parentId = p && p !== ALLOWED_ROOT_ID ? p : null;
       }
     }
 
     return { folderId, currentName, parentId, folders, files };
   });
+
 
