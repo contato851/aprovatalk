@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Circle, Pencil, Trash2, Plus } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import biaAvatar from "@/assets/team/bia.jpg.asset.json";
 import johnnyAvatar from "@/assets/team/johnny.jpg.asset.json";
@@ -317,6 +317,23 @@ function TasksPage() {
                     );
                   })}
                 </div>
+                <button
+                  onClick={() => {
+                    const names = t.participants
+                      .map((pid) => teamById[pid]?.name)
+                      .filter(Boolean)
+                      .join(", ");
+                    const msg = `Atenção ${names}, uma nova tarefa foi criada e inclui você. Acesse o menu tarefas no nosso escritório virtual.\nhttps://conteudo.talk.net.br/tasks`;
+                    window.open(
+                      `https://wa.me/?text=${encodeURIComponent(msg)}`,
+                      "_blank",
+                    );
+                  }}
+                  className="rounded-full p-2 text-muted-foreground hover:bg-green-600/10 hover:text-green-700"
+                  title="Compartilhar no WhatsApp"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                </button>
                 <button
                   onClick={() => {
                     setEditing(t);
