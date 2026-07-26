@@ -19,6 +19,7 @@ import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients/index'
+import { Route as ApiPublicTmpResetBiaRouteImport } from './routes/api/public/_tmp-reset-bia'
 import { Route as AuthenticatedClientsClientIdIndexRouteImport } from './routes/_authenticated/clients/$clientId/index'
 import { Route as ApiPublicHooksCleanupMediaRouteImport } from './routes/api/public/hooks/cleanup-media'
 import { Route as AuthenticatedPostsPostIdEditRouteImport } from './routes/_authenticated/posts/$postId/edit'
@@ -76,6 +77,11 @@ const AuthenticatedClientsIndexRoute =
     path: '/clients/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicTmpResetBiaRoute = ApiPublicTmpResetBiaRouteImport.update({
+  id: '/api/public/_tmp-reset-bia',
+  path: '/api/public',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedClientsClientIdIndexRoute =
   AuthenticatedClientsClientIdIndexRouteImport.update({
     id: '/clients/$clientId/',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
+  '/api/public': typeof ApiPublicTmpResetBiaRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
+  '/api/public': typeof ApiPublicTmpResetBiaRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/_authenticated/fluxo': typeof AuthenticatedFluxoRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
+  '/api/public/_tmp-reset-bia': typeof ApiPublicTmpResetBiaRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/clients/$clientId/new': typeof AuthenticatedClientsClientIdNewRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/fluxo'
     | '/tasks'
     | '/c/$token'
+    | '/api/public'
     | '/clients/'
     | '/dashboard/'
     | '/clients/$clientId/new'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/fluxo'
     | '/tasks'
     | '/c/$token'
+    | '/api/public'
     | '/clients'
     | '/dashboard'
     | '/clients/$clientId/new'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/fluxo'
     | '/_authenticated/tasks'
     | '/c/$token'
+    | '/api/public/_tmp-reset-bia'
     | '/_authenticated/clients/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/clients/$clientId/new'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CTokenRoute: typeof CTokenRoute
+  ApiPublicTmpResetBiaRoute: typeof ApiPublicTmpResetBiaRoute
   ApiPublicHooksCleanupMediaRoute: typeof ApiPublicHooksCleanupMediaRoute
 }
 
@@ -286,6 +299,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/clients/'
       preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/_tmp-reset-bia': {
+      id: '/api/public/_tmp-reset-bia'
+      path: '/api/public'
+      fullPath: '/api/public'
+      preLoaderRoute: typeof ApiPublicTmpResetBiaRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/clients/$clientId/': {
       id: '/_authenticated/clients/$clientId/'
@@ -372,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CTokenRoute: CTokenRoute,
+  ApiPublicTmpResetBiaRoute: ApiPublicTmpResetBiaRoute,
   ApiPublicHooksCleanupMediaRoute: ApiPublicHooksCleanupMediaRoute,
 }
 export const routeTree = rootRouteImport
