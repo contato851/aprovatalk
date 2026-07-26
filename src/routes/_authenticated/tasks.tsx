@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, Circle, Pencil, Trash2, Plus } from "lucide-react";
+import { CheckCircle2, Circle, Pencil, Trash2, Plus, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import biaAvatar from "@/assets/team/bia.jpg.asset.json";
 import johnnyAvatar from "@/assets/team/johnny.jpg.asset.json";
