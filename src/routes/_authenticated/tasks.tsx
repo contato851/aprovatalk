@@ -324,8 +324,9 @@ function TasksPage() {
                       .filter(Boolean)
                       .join(", ");
                     const msg = `Atenção ${names}, uma nova tarefa foi criada e inclui você. Acesse o menu tarefas no nosso escritório virtual.\nhttps://conteudo.talk.net.br/tasks`;
+                    navigator.clipboard.writeText(msg).catch(() => {});
                     window.open(
-                      `https://wa.me/?text=${encodeURIComponent(msg)}`,
+                      "https://chat.whatsapp.com/DG87XolpMNM5q1JW9dmbWP?s=cl&p=i&ilr=4",
                       "_blank",
                     );
                   }}
