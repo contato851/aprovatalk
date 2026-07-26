@@ -319,6 +319,23 @@ function TasksPage() {
                 </div>
                 <button
                   onClick={() => {
+                    const names = t.participants
+                      .map((pid) => teamById[pid]?.name)
+                      .filter(Boolean)
+                      .join(", ");
+                    const msg = `Atenção ${names}, uma nova tarefa foi criada e inclui você. Acesse o menu tarefas no nosso escritório virtual.\nhttps://conteudo.talk.net.br/tasks`;
+                    window.open(
+                      `https://wa.me/?text=${encodeURIComponent(msg)}`,
+                      "_blank",
+                    );
+                  }}
+                  className="rounded-full p-2 text-muted-foreground hover:bg-green-600/10 hover:text-green-700"
+                  title="Compartilhar no WhatsApp"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => {
                     setEditing(t);
                     setDialogOpen(true);
                   }}
