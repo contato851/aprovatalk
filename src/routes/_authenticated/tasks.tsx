@@ -318,20 +318,44 @@ function TasksPage() {
                   })}
                 </div>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     const names = t.participants
                       .map((pid) => teamById[pid]?.name)
                       .filter(Boolean)
                       .join(", ");
                     const msg = `Atenção ${names}, uma nova tarefa foi criada e inclui você. Acesse o menu tarefas no nosso escritório virtual.\nhttps://conteudo.talk.net.br/tasks`;
-                    navigator.clipboard.writeText(msg).catch(() => {});
-                    window.open(
-                      "https://chat.whatsapp.com/DG87XolpMNM5q1JW9dmbWP?s=cl&p=i&ilr=4",
-                      "_blank",
+                    let copied = false;
+                    try {
+                      await navigator.clipboard.writeText(msg);
+                      copied = true;
+                    } catch {
+                      try {
+                        const ta = document.createElement("textarea");
+                        ta.value = msg;
+                        ta.style.position = "fixed";
+                        ta.style.opacity = "0";
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand("copy");
+                        document.body.removeChild(ta);
+                        copied = true;
+                      } catch {}
+                    }
+                    toast.success(
+                      copied
+                        ? "Mensagem copiada! Cole (Ctrl+V) no grupo do WhatsApp."
+                        : "Não foi possível copiar automaticamente. Copie a mensagem manualmente.",
+                      { duration: 6000 },
                     );
+                    setTimeout(() => {
+                      window.open(
+                        "https://chat.whatsapp.com/DG87XolpMNM5q1JW9dmbWP?s=cl&p=i&ilr=4",
+                        "_blank",
+                      );
+                    }, 300);
                   }}
                   className="rounded-full p-2 text-muted-foreground hover:bg-green-600/10 hover:text-green-700"
-                  title="Compartilhar no WhatsApp"
+                  title="Copiar mensagem e abrir grupo do WhatsApp"
                 >
                   <Share2 className="h-3.5 w-3.5" />
                 </button>
