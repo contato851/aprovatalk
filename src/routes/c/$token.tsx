@@ -561,18 +561,22 @@ function FeedCard({
             </Button>
             <Button
               variant="outline"
-              onClick={() => (points.length > 0 ? reject() : setRejectOpen(true))}
+              onClick={() => setRejectOpen(true)}
               disabled={busy}
               className="gap-1.5 border-brand-purple/40 text-brand-purple hover:bg-brand-purple-soft"
             >
-              <X className="h-4 w-4" /> Reprovar
+              <MessageSquarePlus className="h-4 w-4" /> Enviar para ajustes
             </Button>
           </div>
           {points.length > 0 && (
-            <p className="text-[11px] leading-snug text-muted-foreground">
-              Há pontos de ajuste marcados — só é possível reprovar. A reprovação será enviada com os pontos, sem precisar de comentário.
+            <p className="text-[11px] leading-snug text-brand-purple">
+              Você marcou {points.length} ponto{points.length > 1 ? "s" : ""} de
+              ajuste. Toque em <strong>Enviar para ajustes</strong> para que a
+              Talk receba seu pedido — enquanto não enviar, a equipe não é
+              avisada.
             </p>
           )}
+
         </div>
       )}
 
