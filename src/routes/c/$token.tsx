@@ -14,7 +14,7 @@ import {
   rejectPostByToken,
 } from "@/lib/client-portal.functions";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight, Check, X, MessageSquarePlus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, MessageSquarePlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -101,7 +101,7 @@ function ClientFeed() {
               { v: "planning", l: "Planejamento" },
               { v: "pending", l: "Pendentes" },
               { v: "approved", l: "Aprovados" },
-              { v: "rejected", l: "Reprovados" },
+              { v: "rejected", l: "Em ajustes" },
               { v: "fluxo", l: "Edição" },
               { v: "design", l: "Design" },
             ] as { v: Tab; l: string }[]
@@ -141,7 +141,7 @@ function ClientFeed() {
                     ? "Nada pendente por aqui."
                     : tab === "approved"
                       ? "Você ainda não aprovou nenhum post."
-                      : "Nenhum post reprovado."}
+                      : "Nenhum post em ajustes."}
               </p>
             </div>
           ) : tab === "planning" ? (
@@ -317,7 +317,8 @@ function FeedCard({
     setBusy(true);
     try {
       await rejectFn({ data: { token, postId: post.id, comment } });
-      toast.success("Reprovação enviada à Talk.");
+      toast.success("Pedido de ajustes enviado à Talk.");
+      setComment("");
       setRejectOpen(false);
       invalidate();
     } catch (e) {
@@ -326,6 +327,7 @@ function FeedCard({
       setBusy(false);
     }
   }
+
 
   async function captureFrame() {
     const v = videoRef.current;
@@ -559,18 +561,22 @@ function FeedCard({
             </Button>
             <Button
               variant="outline"
-              onClick={() => (points.length > 0 ? reject() : setRejectOpen(true))}
+              onClick={() => setRejectOpen(true)}
               disabled={busy}
               className="gap-1.5 border-brand-purple/40 text-brand-purple hover:bg-brand-purple-soft"
             >
-              <X className="h-4 w-4" /> Reprovar
+              <MessageSquarePlus className="h-4 w-4" /> Enviar para ajustes
             </Button>
           </div>
           {points.length > 0 && (
-            <p className="text-[11px] leading-snug text-muted-foreground">
-              Há pontos de ajuste marcados — só é possível reprovar. A reprovação será enviada com os pontos, sem precisar de comentário.
+            <p className="text-[11px] leading-snug text-brand-purple">
+              Você marcou {points.length} ponto{points.length > 1 ? "s" : ""} de
+              ajuste. Toque em <strong>Enviar para ajustes</strong> para que a
+              Talk receba seu pedido — enquanto não enviar, a equipe não é
+              avisada.
             </p>
           )}
+
         </div>
       )}
 
@@ -619,22 +625,22 @@ function FeedCard({
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de reprovação */}
+      {/* Diálogo de envio para ajustes */}
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Deixe seu comentário</DialogTitle>
+            <DialogTitle>Enviar para ajustes</DialogTitle>
           </DialogHeader>
-          {isVideo && points.length > 0 && (
+          {points.length > 0 && (
             <div className="rounded-lg bg-brand-orange-soft p-3 text-xs text-brand-orange">
-              Os {points.length} ponto{points.length > 1 ? "s" : ""} de ajuste marcado{points.length > 1 ? "s" : ""} serão enviados junto com esta reprovação.
+              Os {points.length} ponto{points.length > 1 ? "s" : ""} de ajuste marcado{points.length > 1 ? "s" : ""} serão enviados junto com este pedido.
             </div>
           )}
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder={
-              isVideo && points.length > 0
+              points.length > 0
                 ? "Comentário geral (opcional)"
                 : "O que precisa ser ajustado?"
             }
@@ -649,7 +655,7 @@ function FeedCard({
               disabled={busy}
               className="bg-brand-purple text-white hover:bg-brand-purple/90"
             >
-              Enviar reprovação
+              {busy ? "Enviando…" : "Enviar para ajustes"}
             </Button>
           </DialogFooter>
         </DialogContent>
