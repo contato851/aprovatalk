@@ -215,7 +215,7 @@ export const rejectPostByToken = createServerFn({ method: "POST" })
     if (error) throw error;
 
     await notifyWhatsApp(
-      `❌ ${client.name} reprovou o post de ${formatScheduledDate(existing.scheduled_at)}.\n${finalComment}`,
+      `🛠️ ${client.name} enviou o post de ${formatScheduledDate(existing.scheduled_at)} para AJUSTES.\n${finalComment}`,
     );
     return { ok: true };
   });

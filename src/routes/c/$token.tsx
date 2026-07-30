@@ -14,7 +14,7 @@ import {
   rejectPostByToken,
 } from "@/lib/client-portal.functions";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight, Check, X, MessageSquarePlus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, MessageSquarePlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -101,7 +101,7 @@ function ClientFeed() {
               { v: "planning", l: "Planejamento" },
               { v: "pending", l: "Pendentes" },
               { v: "approved", l: "Aprovados" },
-              { v: "rejected", l: "Reprovados" },
+              { v: "rejected", l: "Em ajustes" },
               { v: "fluxo", l: "Edição" },
               { v: "design", l: "Design" },
             ] as { v: Tab; l: string }[]
@@ -141,7 +141,7 @@ function ClientFeed() {
                     ? "Nada pendente por aqui."
                     : tab === "approved"
                       ? "Você ainda não aprovou nenhum post."
-                      : "Nenhum post reprovado."}
+                      : "Nenhum post em ajustes."}
               </p>
             </div>
           ) : tab === "planning" ? (
