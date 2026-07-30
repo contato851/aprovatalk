@@ -317,7 +317,8 @@ function FeedCard({
     setBusy(true);
     try {
       await rejectFn({ data: { token, postId: post.id, comment } });
-      toast.success("Reprovação enviada à Talk.");
+      toast.success("Pedido de ajustes enviado à Talk.");
+      setComment("");
       setRejectOpen(false);
       invalidate();
     } catch (e) {
@@ -326,6 +327,7 @@ function FeedCard({
       setBusy(false);
     }
   }
+
 
   async function captureFrame() {
     const v = videoRef.current;
