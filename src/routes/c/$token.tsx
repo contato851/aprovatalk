@@ -625,22 +625,22 @@ function FeedCard({
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo de reprovação */}
+      {/* Diálogo de envio para ajustes */}
       <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Deixe seu comentário</DialogTitle>
+            <DialogTitle>Enviar para ajustes</DialogTitle>
           </DialogHeader>
-          {isVideo && points.length > 0 && (
+          {points.length > 0 && (
             <div className="rounded-lg bg-brand-orange-soft p-3 text-xs text-brand-orange">
-              Os {points.length} ponto{points.length > 1 ? "s" : ""} de ajuste marcado{points.length > 1 ? "s" : ""} serão enviados junto com esta reprovação.
+              Os {points.length} ponto{points.length > 1 ? "s" : ""} de ajuste marcado{points.length > 1 ? "s" : ""} serão enviados junto com este pedido.
             </div>
           )}
           <Textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder={
-              isVideo && points.length > 0
+              points.length > 0
                 ? "Comentário geral (opcional)"
                 : "O que precisa ser ajustado?"
             }
@@ -655,8 +655,10 @@ function FeedCard({
               disabled={busy}
               className="bg-brand-purple text-white hover:bg-brand-purple/90"
             >
-              Enviar reprovação
+              {busy ? "Enviando…" : "Enviar para ajustes"}
             </Button>
+          </DialogFooter>
+
           </DialogFooter>
         </DialogContent>
       </Dialog>
