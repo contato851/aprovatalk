@@ -658,8 +658,6 @@ function FeedCard({
               {busy ? "Enviando…" : "Enviar para ajustes"}
             </Button>
           </DialogFooter>
-
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </article>
