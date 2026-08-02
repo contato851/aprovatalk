@@ -299,12 +299,9 @@ export function PostForm(props: Props) {
       if (type === "video" && !coverFile && !coverPath)
         return toast.error("Vídeo requer uma capa.");
     } else {
-      // Em planejamento só validamos consistência do que foi enviado.
-      if (type === "video" && media.length > 0 && media[0].kind !== "video")
-        return toast.error("Selecione um vídeo (MP4/MOV).");
-      if (type !== "video" && media.some((m) => m.kind !== "image"))
-        return toast.error("Envie apenas imagens (JPG/PNG).");
+      // Em planejamento aceitamos imagens e vídeos livremente (inclusive Reels com imagem).
     }
+
 
     setSaving(true);
     try {
@@ -428,7 +425,14 @@ export function PostForm(props: Props) {
         <Input
           type="file"
           className="mt-2"
-          accept={type === "video" ? "video/mp4,video/quicktime" : "image/jpeg,image/png"}
+          accept={
+            type === "video"
+              ? isPlanning
+                ? "video/mp4,video/quicktime,image/jpeg,image/png"
+                : "video/mp4,video/quicktime"
+              : "image/jpeg,image/png"
+          }
+
           multiple={type === "carousel"}
           onChange={(e) => onFilesChosen(e.target.files)}
         />
