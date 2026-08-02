@@ -11,6 +11,8 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Copy, Plus, Rocket } from "lucide-react";
 import { toast } from "sonner";
+import { PlanningCalendar } from "@/components/talk/planning-calendar";
+
 
 const searchSchema = z.object({
   tab: z.enum(["planning", "review", "approval"]).default("approval"),
