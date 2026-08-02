@@ -11,6 +11,8 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Copy, Plus, Rocket } from "lucide-react";
 import { toast } from "sonner";
+import { PlanningCalendar } from "@/components/talk/planning-calendar";
+
 
 const searchSchema = z.object({
   tab: z.enum(["planning", "review", "approval"]).default("approval"),
@@ -134,7 +136,26 @@ function ClientDetail() {
         ))}
       </div>
 
+      {tab === "planning" && (
+        <div className="space-y-2">
+          <div>
+            <h2 className="font-display text-lg font-semibold">
+              Calendário de planejamento
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Preencha o título e o tipo de conteúdo nas datas do mês e gere os posts de uma vez.
+            </p>
+          </div>
+          <PlanningCalendar
+            clientId={clientId}
+            existingPosts={all}
+            onCreated={() => postsQ.refetch()}
+          />
+        </div>
+      )}
+
       <div>
+
         {postsQ.isLoading ? (
           <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
         ) : list.length === 0 ? (
