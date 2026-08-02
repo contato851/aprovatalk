@@ -425,7 +425,14 @@ export function PostForm(props: Props) {
         <Input
           type="file"
           className="mt-2"
-          accept={type === "video" ? "video/mp4,video/quicktime" : "image/jpeg,image/png"}
+          accept={
+            type === "video"
+              ? isPlanning
+                ? "video/mp4,video/quicktime,image/jpeg,image/png"
+                : "video/mp4,video/quicktime"
+              : "image/jpeg,image/png"
+          }
+
           multiple={type === "carousel"}
           onChange={(e) => onFilesChosen(e.target.files)}
         />
