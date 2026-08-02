@@ -53,9 +53,10 @@ export function PlanningCalendar({
   function setRow(key: string, patch: Partial<Row>) {
     setRows((prev) => ({
       ...prev,
-      [key]: { title: "", type: "", ...prev[key], ...patch },
+      [key]: { ...(prev[key] ?? { title: "", type: "" }), ...patch },
     }));
   }
+
 
   async function handleGenerate() {
     if (filled.length === 0) {
