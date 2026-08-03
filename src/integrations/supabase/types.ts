@@ -90,6 +90,7 @@ export type Database = {
           copy: string
           created_at: string
           done: boolean
+          final_link: string
           folder_link: string
           id: string
           references_images: string[]
@@ -104,6 +105,7 @@ export type Database = {
           copy?: string
           created_at?: string
           done?: boolean
+          final_link?: string
           folder_link?: string
           id?: string
           references_images?: string[]
@@ -118,6 +120,7 @@ export type Database = {
           copy?: string
           created_at?: string
           done?: boolean
+          final_link?: string
           folder_link?: string
           id?: string
           references_images?: string[]
