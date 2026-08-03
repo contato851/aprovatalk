@@ -22,6 +22,7 @@ type Slot = {
   client: string;
   title: string;
   folder_link: string;
+  final_link: string;
   briefing: string;
   copy: string;
   references_images: string[];
@@ -39,6 +40,7 @@ function emptySlot(date: string, index: number): Slot {
     client: "",
     title: "",
     folder_link: "",
+    final_link: "",
     briefing: "",
     copy: "",
     references_images: [],
