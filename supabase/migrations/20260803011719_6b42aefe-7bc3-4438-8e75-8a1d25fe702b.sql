@@ -1,0 +1,1 @@
+ALTER TABLE public.design_slots ADD COLUMN IF NOT EXISTS final_link text NOT NULL DEFAULT '';
