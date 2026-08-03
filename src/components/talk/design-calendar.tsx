@@ -116,6 +116,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
         grouped[key][row.slot_index] = {
           ...emptySlot(key, row.slot_index),
           ...row,
+          final_link: row.final_link ?? "",
           references_images: row.references_images ?? [],
         };
       }
@@ -171,6 +172,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
           s.client.trim() ||
           s.title.trim() ||
           s.folder_link.trim() ||
+          s.final_link.trim() ||
           s.briefing.trim() ||
           s.copy.trim() ||
           s.references_images.length > 0;
@@ -193,6 +195,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
           s.client.trim() ||
           s.title.trim() ||
           s.folder_link.trim() ||
+          s.final_link.trim() ||
           s.briefing.trim() ||
           s.copy.trim() ||
           s.references_images.length > 0 ||
@@ -215,6 +218,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
           client: slot.client,
           title: slot.title,
           folder_link: slot.folder_link,
+          final_link: slot.final_link,
           briefing: slot.briefing,
           copy: slot.copy,
           references_images: slot.references_images,
@@ -417,7 +421,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                     </div>
 
                     <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                      <Field label="Link da pasta">
+                      <Field label="Link do material bruto">
                         <div className="flex gap-2">
                           <input
                             value={slot.folder_link}
@@ -449,6 +453,34 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                         </div>
                       </Field>
                     </div>
+
+                    <Field label="Link do material finalizado">
+                      <div className="flex gap-2">
+                        <input
+                          value={slot.final_link}
+                          readOnly={readOnly}
+                          onChange={(e) => updateSlot(i, { final_link: e.target.value })}
+                          placeholder="https://..."
+                          className="flex-1 h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
+                        />
+                        <a
+                          href={slot.final_link || undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => { if (!slot.final_link) e.preventDefault(); }}
+                          className={cn(
+                            "h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border text-sm font-medium transition",
+                            slot.final_link
+                              ? "bg-foreground text-background border-foreground hover:opacity-90"
+                              : "bg-muted text-muted-foreground border-transparent cursor-not-allowed",
+                          )}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Abrir
+                        </a>
+                      </div>
+                    </Field>
+
 
                     <div className="grid gap-2 sm:grid-cols-2">
                       <Field label="Briefing">
