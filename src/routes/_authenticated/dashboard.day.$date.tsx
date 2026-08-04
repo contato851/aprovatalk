@@ -5,6 +5,10 @@ import { listPosts } from "@/lib/admin.functions";
 import { format, parseISO, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ArrowLeft } from "lucide-react";
+import {
+  PostSortFilterBar,
+  usePostSortFilter,
+} from "@/components/talk/post-sort-filter";
 
 export const Route = createFileRoute("/_authenticated/dashboard/day/$date")({
   component: DayPage,
