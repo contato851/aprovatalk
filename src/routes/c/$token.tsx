@@ -27,6 +27,10 @@ import {
 import { TalkStar } from "@/components/talk/star";
 import { FluxoCalendar } from "@/components/talk/fluxo-calendar";
 import { DesignCalendar } from "@/components/talk/design-calendar";
+import {
+  PostSortFilterBar,
+  usePostSortFilter,
+} from "@/components/talk/post-sort-filter";
 
 export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
