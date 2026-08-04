@@ -35,6 +35,7 @@ function DayPage() {
   const dayPosts = (postsQ.data ?? []).filter((p: Post) =>
     isSameDay(parseISO(p.scheduled_at), day),
   );
+  const sf = usePostSortFilter(dayPosts);
 
   return (
     <div className="space-y-6">
@@ -53,19 +54,27 @@ function DayPage() {
         </p>
       </div>
 
+      <PostSortFilterBar
+        order={sf.order}
+        setOrder={sf.setOrder}
+        type={sf.type}
+        setType={sf.setType}
+      />
+
       {postsQ.isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando…</p>
-      ) : dayPosts.length === 0 ? (
+      ) : sf.result.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
           Nenhum post para este dia.
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {dayPosts.map((p) => (
+          {sf.result.map((p) => (
             <PostCard key={p.id} post={p} />
           ))}
         </div>
       )}
+
     </div>
   );
 }
