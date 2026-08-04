@@ -75,6 +75,9 @@ function ClientDetail() {
     }
   }
 
+  if (!clientQ.data)
+    return <p className="text-sm text-muted-foreground">Carregando…</p>;
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center gap-4">
