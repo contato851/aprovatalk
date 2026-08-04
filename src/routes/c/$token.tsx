@@ -45,6 +45,9 @@ function ClientFeed() {
     retry: false,
   });
 
+  const allPosts = (q.data?.posts ?? []) as any[];
+  const sf = usePostSortFilter(allPosts.filter((p: any) => p.status === tab));
+
   if (q.isLoading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background">
@@ -66,8 +69,8 @@ function ClientFeed() {
     );
   }
 
-  const { client, posts } = q.data;
-  const filtered = posts.filter((p: any) => p.status === tab);
+  const { client } = q.data;
+  const filtered = sf.result;
 
   return (
     <main className="min-h-screen bg-background pb-24">
