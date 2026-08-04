@@ -12,6 +12,10 @@ import { ptBR } from "date-fns/locale";
 import { Copy, Plus, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { PlanningCalendar } from "@/components/talk/planning-calendar";
+import {
+  PostSortFilterBar,
+  usePostSortFilter,
+} from "@/components/talk/post-sort-filter";
 
 
 const searchSchema = z.object({
