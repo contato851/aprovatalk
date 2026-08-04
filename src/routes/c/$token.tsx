@@ -27,6 +27,10 @@ import {
 import { TalkStar } from "@/components/talk/star";
 import { FluxoCalendar } from "@/components/talk/fluxo-calendar";
 import { DesignCalendar } from "@/components/talk/design-calendar";
+import {
+  PostSortFilterBar,
+  usePostSortFilter,
+} from "@/components/talk/post-sort-filter";
 
 export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
@@ -44,6 +48,9 @@ function ClientFeed() {
     queryFn: () => getPortalFn({ data: { token } }),
     retry: false,
   });
+
+  const allPosts = (q.data?.posts ?? []) as any[];
+  const sf = usePostSortFilter(allPosts.filter((p: any) => p.status === tab));
 
   if (q.isLoading) {
     return (
@@ -66,8 +73,8 @@ function ClientFeed() {
     );
   }
 
-  const { client, posts } = q.data;
-  const filtered = posts.filter((p: any) => p.status === tab);
+  const { client } = q.data;
+  const filtered = sf.result;
 
   return (
     <main className="min-h-screen bg-background pb-24">
@@ -131,6 +138,12 @@ function ClientFeed() {
         </div>
       ) : (
         <div className="mx-auto max-w-md space-y-8 px-4 py-6">
+          <PostSortFilterBar
+            order={sf.order}
+            setOrder={sf.setOrder}
+            type={sf.type}
+            setType={sf.setType}
+          />
           {filtered.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
               <TalkStar className="mx-auto h-8 w-8 text-brand-chartreuse" />

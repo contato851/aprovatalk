@@ -12,6 +12,10 @@ import { ptBR } from "date-fns/locale";
 import { Copy, Plus, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { PlanningCalendar } from "@/components/talk/planning-calendar";
+import {
+  PostSortFilterBar,
+  usePostSortFilter,
+} from "@/components/talk/post-sort-filter";
 
 
 const searchSchema = z.object({
@@ -40,15 +44,17 @@ function ClientDetail() {
     queryFn: () => listPostsFn({ data: { clientId } }),
   });
 
-  if (!clientQ.data) return <p className="text-sm text-muted-foreground">Carregando…</p>;
-  const c = clientQ.data as any;
   const all = (postsQ.data ?? []) as any[];
   const planning = all.filter((p) => p.status === "planning");
   const review = all.filter((p) => p.status === "ready_for_review");
   const approval = all.filter(
     (p) => p.status !== "planning" && p.status !== "ready_for_review",
   );
-  const list = tab === "planning" ? planning : tab === "review" ? review : approval;
+  const baseList =
+    tab === "planning" ? planning : tab === "review" ? review : approval;
+  const sf = usePostSortFilter(baseList);
+  const list = sf.result;
+  const c = clientQ.data as any;
 
   async function handleRelease(id: string) {
     try {
@@ -68,6 +74,9 @@ function ClientDetail() {
       toast.error(e instanceof Error ? e.message : "Erro");
     }
   }
+
+  if (!clientQ.data)
+    return <p className="text-sm text-muted-foreground">Carregando…</p>;
 
   return (
     <div className="space-y-8">
@@ -155,6 +164,13 @@ function ClientDetail() {
       )}
 
       <div>
+        <PostSortFilterBar
+          order={sf.order}
+          setOrder={sf.setOrder}
+          type={sf.type}
+          setType={sf.setType}
+        />
+
 
         {postsQ.isLoading ? (
           <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
