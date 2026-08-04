@@ -164,6 +164,13 @@ function ClientDetail() {
       )}
 
       <div>
+        <PostSortFilterBar
+          order={sf.order}
+          setOrder={sf.setOrder}
+          type={sf.type}
+          setType={sf.setType}
+        />
+
 
         {postsQ.isLoading ? (
           <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
