@@ -16,6 +16,7 @@ import {
   PostSortFilterBar,
   usePostSortFilter,
 } from "@/components/talk/post-sort-filter";
+import { PostMediaPlaceholder } from "@/components/talk/post-media-placeholder";
 
 
 const searchSchema = z.object({
@@ -216,11 +217,7 @@ function ClientDetail() {
                       ) : thumb ? (
                         <img src={thumb} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center">
-                          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                            Sem mídia
-                          </p>
-                        </div>
+                        <PostMediaPlaceholder type={p.type} status={p.status} />
                       )}
                       <span
                         className={`absolute left-2 top-2 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm ${

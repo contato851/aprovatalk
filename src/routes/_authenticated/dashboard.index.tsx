@@ -7,6 +7,7 @@ import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDa
 import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { TalkStar } from "@/components/talk/star";
+import { PostMediaPlaceholder } from "@/components/talk/post-media-placeholder";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DashboardPage,
@@ -241,9 +242,7 @@ function PostCard({ post }: { post: Post }) {
         {thumb ? (
           <img src={thumb} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-            sem mídia
-          </div>
+          <PostMediaPlaceholder type={post.type} status={post.status} />
         )}
         <div className="absolute left-2 top-2">
           <StatusBadge status={post.status} />

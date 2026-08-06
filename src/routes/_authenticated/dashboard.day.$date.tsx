@@ -9,6 +9,7 @@ import {
   PostSortFilterBar,
   usePostSortFilter,
 } from "@/components/talk/post-sort-filter";
+import { PostMediaPlaceholder } from "@/components/talk/post-media-placeholder";
 
 export const Route = createFileRoute("/_authenticated/dashboard/day/$date")({
   component: DayPage,
@@ -127,9 +128,7 @@ function PostCard({ post }: { post: Post }) {
         {thumb ? (
           <img src={thumb} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-            sem mídia
-          </div>
+          <PostMediaPlaceholder type={post.type} status={post.status} />
         )}
         <div className="absolute left-2 top-2">
           <StatusBadge status={post.status} />
