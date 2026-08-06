@@ -41,7 +41,7 @@ export function PlanningCalendar({
   const createPostFn = useServerFn(createPost);
   const updatePlanningFn = useServerFn(updatePlanningPost);
   const [cursor, setCursor] = useState(new Date());
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [overrides, setOverrides] = useState<Record<string, Row>>({});
   const [saving, setSaving] = useState(false);
 
