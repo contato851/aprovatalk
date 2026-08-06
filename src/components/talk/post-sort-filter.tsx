@@ -7,7 +7,7 @@ export type TypeFilter = "" | "static" | "carousel" | "video";
 export function usePostSortFilter<T extends { type: string; scheduled_at: string }>(
   posts: T[],
 ) {
-  const [order, setOrder] = useState<SortOrder>("desc");
+  const [order, setOrder] = useState<SortOrder>("asc");
   const [type, setType] = useState<TypeFilter>("");
 
   const result = useMemo(() => {
