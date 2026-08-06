@@ -295,6 +295,29 @@ export const createPost = createServerFn({ method: "POST" })
     return post;
   });
 
+/** Atualiza apenas título (caption) e tipo de um post em planejamento. */
+export const updatePlanningPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        type: z.enum(["static", "carousel", "video"]),
+        caption: z.string().default(""),
+      })
+      .parse(d),
+  )
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("posts")
+      .update({ type: data.type, caption: data.caption })
+      .eq("id", data.id);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+
 /**
  * Atualiza post + substitui mídia.
  * - Se o post estiver em "planning" ou "ready_for_review", mantém o status.
