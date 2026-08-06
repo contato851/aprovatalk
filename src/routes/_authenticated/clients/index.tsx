@@ -67,6 +67,7 @@ function ClientCard({ client }: { client: any }) {
       <Link
         to="/clients/$clientId"
         params={{ clientId: client.id }}
+        search={{ tab: "approval" }}
         className="flex items-center gap-3 group"
       >
         {client.avatar_signed_url ? (
