@@ -209,6 +209,7 @@ function ListView({ posts }: { posts: Post[] }) {
             <Link
               to="/clients/$clientId"
               params={{ clientId: g.client?.id }}
+              search={{ tab: "approval" }}
               className="ml-auto text-xs text-muted-foreground hover:text-foreground"
             >
               Abrir cliente →

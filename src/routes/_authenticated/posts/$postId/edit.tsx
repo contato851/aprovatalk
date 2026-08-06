@@ -44,6 +44,7 @@ function EditPostPage() {
             navigate({
               to: "/clients/$clientId",
               params: { clientId: post.client.id },
+              search: { tab: "approval" },
             });
           }}
         >
