@@ -466,12 +466,12 @@ export function PostForm(props: Props) {
                       <img
                         src={m.previewUrl}
                         alt=""
-                        className="h-40 w-40 object-cover"
+                        className="aspect-[3/4] w-40 object-cover"
                       />
                     ) : (
                       <video
                         src={m.previewUrl}
-                        className="h-40 w-40 object-cover"
+                        className="aspect-[9/16] w-40 object-cover"
                         controls
                       />
                     )}
@@ -688,7 +688,7 @@ export function PostForm(props: Props) {
           <img
             src={coverPreview}
             alt=""
-            className="mt-3 h-40 w-40 rounded-xl border border-border object-cover"
+            className="mt-3 aspect-[3/4] w-40 rounded-xl border border-border object-cover"
           />
         )}
       </div>
@@ -827,7 +827,7 @@ function SortableMedia({
       }}
       className="relative overflow-hidden rounded-xl border border-border bg-card"
     >
-      <img src={slot.previewUrl} alt="" className="h-32 w-32 object-cover" />
+      <img src={slot.previewUrl} alt="" className="aspect-[3/4] w-32 object-cover" />
       <button
         {...attributes}
         {...listeners}

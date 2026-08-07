@@ -594,7 +594,7 @@ function formatMMSS(total: number) {
 
 function ArchivedPlaceholder() {
   return (
-    <div className="flex aspect-[4/5] flex-col items-center justify-center bg-muted/60 text-muted-foreground">
+    <div className="flex aspect-[3/4] flex-col items-center justify-center bg-muted/60 text-muted-foreground">
       <p className="text-xs font-medium uppercase tracking-wider">Mídia arquivada</p>
     </div>
   );
@@ -645,7 +645,7 @@ function MediaViewer({
   if (post.type === "static") {
     const m = items[0];
     return (
-      <div className="aspect-[4/5] bg-muted">
+      <div className="aspect-[3/4] bg-muted">
         {m?.signed_url && (
           <img src={m.signed_url} alt="" className="h-full w-full object-cover" />
         )}
@@ -659,7 +659,7 @@ function MediaViewer({
         <div className="flex">
           {items.map((m, i) => (
             <div key={i} className="min-w-0 flex-[0_0_100%]">
-              <div className="aspect-[4/5] bg-muted">
+              <div className="aspect-[3/4] bg-muted">
                 {m.signed_url && (
                   <img
                     src={m.signed_url}
