@@ -36,12 +36,13 @@ export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
 });
 
-type Tab = "planning" | "pending" | "approved" | "rejected" | "fluxo" | "design";
+type Tab = "pending" | "approved" | "rejected";
 
 function ClientFeed() {
   const { token } = Route.useParams();
   const getPortalFn = useServerFn(getClientPortal);
   const [tab, setTab] = useState<Tab>("pending");
+
 
   const q = useQuery({
     queryKey: ["client-portal", token],
