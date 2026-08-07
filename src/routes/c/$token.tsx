@@ -25,10 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TalkStar } from "@/components/talk/star";
-import {
-  PostSortFilterBar,
-  usePostSortFilter,
-} from "@/components/talk/post-sort-filter";
+import { usePostSortFilter } from "@/components/talk/post-sort-filter";
 
 export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
