@@ -25,8 +25,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TalkStar } from "@/components/talk/star";
-import { FluxoCalendar } from "@/components/talk/fluxo-calendar";
-import { DesignCalendar } from "@/components/talk/design-calendar";
 import {
   PostSortFilterBar,
   usePostSortFilter,
@@ -165,70 +163,6 @@ function typeBadgeClass(t: string) {
     : t === "carousel"
       ? "bg-brand-purple text-white"
       : "bg-brand-chartreuse text-emerald-950";
-}
-
-function PlanningFeedCard({ post, client }: { post: any; client: any }) {
-  const hasMedia = !post.midia_arquivada && (post.media?.length ?? 0) > 0;
-  const scheduled = parseISO(post.scheduled_at);
-  return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="flex items-center gap-2.5 px-4 py-3">
-        {client.avatar_signed_url ? (
-          <img
-            src={client.avatar_signed_url}
-            alt=""
-            className="h-8 w-8 rounded-full object-cover"
-          />
-        ) : (
-          <div className="h-8 w-8 rounded-full bg-muted" />
-        )}
-        <div className="text-sm font-semibold">@{client.instagram_handle}</div>
-        <span className="ml-auto rounded-full bg-brand-chartreuse-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-800">
-          Em produção
-        </span>
-      </div>
-
-      <div className="relative">
-        {post.midia_arquivada ? (
-          <ArchivedPlaceholder />
-        ) : hasMedia ? (
-          <MediaViewer post={post} />
-        ) : (
-          <div
-            className={`flex ${post.type === "video" ? "aspect-[9/16]" : "aspect-[4/5]"} flex-col items-center justify-center bg-muted/40 text-muted-foreground`}
-          >
-            <p className="text-xs font-medium uppercase tracking-wider">
-              Mídia em produção
-            </p>
-          </div>
-        )}
-        <span
-          className={`absolute left-3 top-3 rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider shadow-sm ${typeBadgeClass(post.type)}`}
-        >
-          {typeLabel(post.type)}
-        </span>
-      </div>
-
-      <div className="space-y-3 border-t border-border p-4">
-        <div className="rounded-xl border border-border bg-background/60 p-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Data planejada
-          </div>
-          <div className="mt-1 font-display text-xl font-bold leading-tight">
-            {format(scheduled, "dd 'de' MMMM", { locale: ptBR })}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {format(scheduled, "EEEE · HH'h'mm", { locale: ptBR })}
-          </div>
-        </div>
-        {post.caption && (
-          <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
-            {post.caption}
-          </p>
-        )}
-      </div>
-    </article>
-  );
 }
 
 function FeedCard({
