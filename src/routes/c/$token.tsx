@@ -25,8 +25,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TalkStar } from "@/components/talk/star";
-import { FluxoCalendar } from "@/components/talk/fluxo-calendar";
-import { DesignCalendar } from "@/components/talk/design-calendar";
 import {
   PostSortFilterBar,
   usePostSortFilter,
@@ -36,12 +34,13 @@ export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
 });
 
-type Tab = "planning" | "pending" | "approved" | "rejected" | "fluxo" | "design";
+type Tab = "pending" | "approved" | "rejected";
 
 function ClientFeed() {
   const { token } = Route.useParams();
   const getPortalFn = useServerFn(getClientPortal);
   const [tab, setTab] = useState<Tab>("pending");
+
 
   const q = useQuery({
     queryKey: ["client-portal", token],
@@ -105,12 +104,9 @@ function ClientFeed() {
         <div className="mx-auto flex max-w-md gap-1 px-5 pb-3 overflow-x-auto">
           {(
             [
-              { v: "planning", l: "Planejamento" },
               { v: "pending", l: "Pendentes" },
-              { v: "approved", l: "Aprovados" },
               { v: "rejected", l: "Em ajustes" },
-              { v: "fluxo", l: "Edição" },
-              { v: "design", l: "Design" },
+              { v: "approved", l: "Aprovados" },
             ] as { v: Tab; l: string }[]
           ).map((t) => (
             <button
@@ -128,49 +124,34 @@ function ClientFeed() {
         </div>
       </header>
 
-      {tab === "fluxo" ? (
-        <div className="mx-auto max-w-md px-4 py-6">
-          <FluxoCalendar readOnly token={token} />
-        </div>
-      ) : tab === "design" ? (
-        <div className="mx-auto max-w-md px-4 py-6">
-          <DesignCalendar readOnly token={token} />
-        </div>
-      ) : (
-        <div className="mx-auto max-w-md space-y-8 px-4 py-6">
-          <PostSortFilterBar
-            order={sf.order}
-            setOrder={sf.setOrder}
-            type={sf.type}
-            setType={sf.setType}
-          />
-          {filtered.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
-              <TalkStar className="mx-auto h-8 w-8 text-brand-chartreuse" />
-              <p className="mt-3 text-sm text-muted-foreground">
-                {tab === "planning"
-                  ? "Nenhum post em produção no momento."
-                  : tab === "pending"
-                    ? "Nada pendente por aqui."
-                    : tab === "approved"
-                      ? "Você ainda não aprovou nenhum post."
-                      : "Nenhum post em ajustes."}
-              </p>
-            </div>
-          ) : tab === "planning" ? (
-            filtered.map((p: any) => (
-              <PlanningFeedCard key={p.id} post={p} client={client} />
-            ))
-          ) : (
-            filtered.map((p: any) => (
-              <FeedCard key={p.id} post={p} client={client} token={token} readOnly={tab !== "pending"} />
-            ))
-          )}
-        </div>
-      )}
+      <div className="mx-auto max-w-md space-y-8 px-4 py-6">
+        <PostSortFilterBar
+          order={sf.order}
+          setOrder={sf.setOrder}
+          type={sf.type}
+          setType={sf.setType}
+        />
+        {filtered.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
+            <TalkStar className="mx-auto h-8 w-8 text-brand-chartreuse" />
+            <p className="mt-3 text-sm text-muted-foreground">
+              {tab === "pending"
+                ? "Nada pendente por aqui."
+                : tab === "approved"
+                  ? "Você ainda não aprovou nenhum post."
+                  : "Nenhum post em ajustes."}
+            </p>
+          </div>
+        ) : (
+          filtered.map((p: any) => (
+            <FeedCard key={p.id} post={p} client={client} token={token} readOnly={tab !== "pending"} />
+          ))
+        )}
+      </div>
     </main>
   );
 }
+
 
 function typeLabel(t: string) {
   return t === "static" ? "Estático" : t === "carousel" ? "Carrossel" : "Reels";
@@ -182,70 +163,6 @@ function typeBadgeClass(t: string) {
     : t === "carousel"
       ? "bg-brand-purple text-white"
       : "bg-brand-chartreuse text-emerald-950";
-}
-
-function PlanningFeedCard({ post, client }: { post: any; client: any }) {
-  const hasMedia = !post.midia_arquivada && (post.media?.length ?? 0) > 0;
-  const scheduled = parseISO(post.scheduled_at);
-  return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="flex items-center gap-2.5 px-4 py-3">
-        {client.avatar_signed_url ? (
-          <img
-            src={client.avatar_signed_url}
-            alt=""
-            className="h-8 w-8 rounded-full object-cover"
-          />
-        ) : (
-          <div className="h-8 w-8 rounded-full bg-muted" />
-        )}
-        <div className="text-sm font-semibold">@{client.instagram_handle}</div>
-        <span className="ml-auto rounded-full bg-brand-chartreuse-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-800">
-          Em produção
-        </span>
-      </div>
-
-      <div className="relative">
-        {post.midia_arquivada ? (
-          <ArchivedPlaceholder />
-        ) : hasMedia ? (
-          <MediaViewer post={post} />
-        ) : (
-          <div
-            className={`flex ${post.type === "video" ? "aspect-[9/16]" : "aspect-[4/5]"} flex-col items-center justify-center bg-muted/40 text-muted-foreground`}
-          >
-            <p className="text-xs font-medium uppercase tracking-wider">
-              Mídia em produção
-            </p>
-          </div>
-        )}
-        <span
-          className={`absolute left-3 top-3 rounded-md px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider shadow-sm ${typeBadgeClass(post.type)}`}
-        >
-          {typeLabel(post.type)}
-        </span>
-      </div>
-
-      <div className="space-y-3 border-t border-border p-4">
-        <div className="rounded-xl border border-border bg-background/60 p-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Data planejada
-          </div>
-          <div className="mt-1 font-display text-xl font-bold leading-tight">
-            {format(scheduled, "dd 'de' MMMM", { locale: ptBR })}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {format(scheduled, "EEEE · HH'h'mm", { locale: ptBR })}
-          </div>
-        </div>
-        {post.caption && (
-          <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
-            {post.caption}
-          </p>
-        )}
-      </div>
-    </article>
-  );
 }
 
 function FeedCard({
