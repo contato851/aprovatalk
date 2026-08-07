@@ -122,12 +122,6 @@ function ClientFeed() {
       </header>
 
       <div className="mx-auto max-w-md space-y-8 px-4 py-6">
-        <PostSortFilterBar
-          order={sf.order}
-          setOrder={sf.setOrder}
-          type={sf.type}
-          setType={sf.setType}
-        />
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
             <TalkStar className="mx-auto h-8 w-8 text-brand-chartreuse" />
