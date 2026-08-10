@@ -295,27 +295,38 @@ export const createPost = createServerFn({ method: "POST" })
     return post;
   });
 
-/** Atualiza apenas título (caption) e tipo de um post em planejamento. */
+/** Atualiza campos de planejamento de um post. */
 export const updatePlanningPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
       .object({
         id: z.string().uuid(),
-        type: z.enum(["static", "carousel", "video"]),
-        caption: z.string().default(""),
+        type: z.enum(["static", "carousel", "video"]).optional(),
+        planning_title: z.string().optional(),
+        caption: z.string().optional(),
+        briefing: z.string().optional(),
+        script: z.string().optional(),
+        internal_status: z.enum(["draft", "producing", "ready"]).optional(),
+        scheduled_at: z.string().optional(),
       })
       .parse(d),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
+    const { id, ...patch } = data;
+    const clean = Object.fromEntries(
+      Object.entries(patch).filter(([, v]) => v !== undefined),
+    );
+    if (Object.keys(clean).length === 0) return { ok: true };
     const { error } = await context.supabase
       .from("posts")
-      .update({ type: data.type, caption: data.caption })
-      .eq("id", data.id);
+      .update(clean)
+      .eq("id", id);
     if (error) throw error;
     return { ok: true };
   });
+
 
 
 /**
