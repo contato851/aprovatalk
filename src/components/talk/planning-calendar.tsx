@@ -313,16 +313,18 @@ export function PlanningCalendar({
               const open = !!expanded[key];
               return (
                 <li key={key} className={weekend ? "bg-muted/40" : ""}>
-                  <div className="flex flex-col gap-2 p-2.5 sm:flex-row sm:items-center">
-                    <div className="flex w-full min-w-0 shrink-0 flex-wrap items-center gap-x-2 gap-y-1 sm:w-32">
-                      <span className="font-display text-lg font-bold leading-none">
-                        {format(day, "dd")}
-                      </span>
-                      <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                        {format(day, "EEE", { locale: ptBR })}
-                      </span>
+                  <div className="flex flex-col gap-2 p-2.5 sm:flex-row sm:items-start">
+                    <div className="flex w-full min-w-0 shrink-0 flex-col gap-1 sm:w-20">
+                      <div className="flex items-center gap-1.5 leading-none">
+                        <span className="font-display text-lg font-bold">
+                          {format(day, "dd")}
+                        </span>
+                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          {format(day, "EEE", { locale: ptBR })}
+                        </span>
+                      </div>
                       {linked && (
-                        <span className="max-w-full truncate rounded-full bg-brand-purple-soft px-1.5 py-0.5 text-[10px] font-medium text-brand-purple">
+                        <span className="w-fit max-w-full truncate rounded-full bg-brand-purple-soft px-1.5 py-0.5 text-[10px] font-medium text-brand-purple">
                           {linked.status === "planning"
                             ? "Plano"
                             : linked.status === "ready_for_review"
@@ -334,7 +336,6 @@ export function PlanningCalendar({
                                   : "Aprovação"}
                         </span>
                       )}
-
                     </div>
                     <input
                       value={row.title}
@@ -350,7 +351,7 @@ export function PlanningCalendar({
                       value={row.time}
                       onChange={(e) => setRow(key, { time: e.target.value })}
                       aria-label="Horário de publicação"
-                      className="w-full shrink-0 rounded-md border border-input bg-background px-2 py-1.5 text-sm sm:w-24"
+                      className="w-full shrink-0 rounded-md border border-input bg-background px-2 py-1.5 text-sm sm:w-20"
                     />
                     <div className="flex shrink-0 flex-wrap gap-1">
                       {TYPES.map((t) => (
@@ -377,14 +378,14 @@ export function PlanningCalendar({
                         type="button"
                         onClick={() => saveRow(key)}
                         disabled={!!rowSaving[key]}
-                        className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                        aria-label="Salvar"
+                        className="inline-flex items-center rounded-full bg-primary p-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                       >
                         {rowSaving[key] ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Save className="h-3.5 w-3.5" />
+                          <Save className="h-4 w-4" />
                         )}
-                        Salvar
                       </button>
                       <button
                         type="button"
