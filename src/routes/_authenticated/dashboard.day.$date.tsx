@@ -61,10 +61,28 @@ function DayPage() {
         >
           <ArrowLeft className="h-4 w-4" /> Voltar ao calendário
         </Link>
-        <h1 className="mt-3 font-display text-3xl font-bold capitalize">
-          {format(day, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <div className="mt-3 flex items-center justify-center gap-3">
+          <Link
+            to="/dashboard/day/$date"
+            params={{ date: format(subDays(day, 1), "yyyy-MM-dd") }}
+            className="rounded-full p-1.5 hover:bg-accent"
+            aria-label="Dia anterior"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="font-display text-3xl font-bold capitalize">
+            {format(day, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+          </h1>
+          <Link
+            to="/dashboard/day/$date"
+            params={{ date: format(addDays(day, 1), "yyyy-MM-dd") }}
+            className="rounded-full p-1.5 hover:bg-accent"
+            aria-label="Próximo dia"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Link>
+        </div>
+        <p className="mt-1 text-center text-sm text-muted-foreground">
           Planejamento do dia — um card por cliente.
         </p>
       </div>
