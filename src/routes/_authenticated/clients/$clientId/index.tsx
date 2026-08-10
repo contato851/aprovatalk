@@ -164,8 +164,10 @@ function ClientDetail() {
         </div>
       )}
 
+      {tab !== "planning" && (
       <div>
         <PostSortFilterBar
+
           order={sf.order}
           setOrder={sf.setOrder}
           type={sf.type}
@@ -294,6 +296,8 @@ function ClientDetail() {
           </div>
         )}
       </div>
+      )}
+
     </div>
   );
 }
