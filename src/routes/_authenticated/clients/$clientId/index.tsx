@@ -242,7 +242,7 @@ function ClientDetail() {
             {tab === "planning"
               ? "Nenhum rascunho ainda. Crie um novo para começar o planejamento."
               : tab === "review"
-                ? "Nenhum post aguardando revisão."
+                ? "Nenhum post em produção."
                 : "Nenhum post em aprovação."}
           </p>
         ) : (
@@ -312,7 +312,7 @@ function ClientDetail() {
                         {p.status === "planning"
                           ? "Planejamento"
                           : p.status === "ready_for_review"
-                            ? "Pronto p/ revisão"
+                            ? "Produção"
                             : p.status === "approved"
                               ? "Aprovado"
                               : p.status === "rejected"

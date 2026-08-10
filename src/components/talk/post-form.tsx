@@ -712,7 +712,7 @@ export function PostForm(props: Props) {
             <Link2 className="h-4 w-4" /> Vincular a uma entrega
           </Label>
           <p className="mt-1 text-xs text-muted-foreground">
-            Quando o designer/editor marcar a entrega como concluída, este post sobe automaticamente para <strong>Pronto para revisão</strong>.
+            Quando o designer/editor marcar a entrega como concluída, este post sobe automaticamente para <strong>Produção</strong>.
           </p>
           <div className="mt-3 grid grid-cols-3 gap-2">
             {(
