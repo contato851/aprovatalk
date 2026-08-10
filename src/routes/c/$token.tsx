@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/dialog";
 import { TalkStar } from "@/components/talk/star";
 import { usePostSortFilter } from "@/components/talk/post-sort-filter";
+import { PlanningCalendarReadOnly } from "@/components/talk/planning-calendar-readonly";
+
 
 export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
