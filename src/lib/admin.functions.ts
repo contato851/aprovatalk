@@ -321,7 +321,7 @@ export const updatePlanningPost = createServerFn({ method: "POST" })
     if (Object.keys(clean).length === 0) return { ok: true };
     const { error } = await context.supabase
       .from("posts")
-      .update(clean)
+      .update(clean as any)
       .eq("id", id);
     if (error) throw error;
     return { ok: true };
