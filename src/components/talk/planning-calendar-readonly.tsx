@@ -139,9 +139,10 @@ function Block({ label, text }: { label: string; text: string }) {
       <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      <p className="whitespace-pre-wrap break-words rounded-md bg-muted/60 p-2 text-sm">
-        {text}
-      </p>
+      <FormattedText
+        text={text}
+        className="rounded-md bg-muted/60 p-2 break-words"
+      />
     </div>
   );
 }
