@@ -323,9 +323,18 @@ export function PlanningCalendar({
                       </span>
                       {linked && (
                         <span className="ml-auto rounded-full bg-brand-purple-soft px-1.5 py-0.5 text-[10px] font-medium text-brand-purple sm:ml-0">
-                          1
+                          {linked.status === "planning"
+                            ? "Plano"
+                            : linked.status === "ready_for_review"
+                              ? "Produção"
+                              : linked.status === "approved"
+                                ? "Aprovado"
+                                : linked.status === "rejected"
+                                  ? "Ajustes"
+                                  : "Aprovação"}
                         </span>
                       )}
+
                     </div>
                     <input
                       value={row.title}
