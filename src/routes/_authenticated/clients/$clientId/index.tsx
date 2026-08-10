@@ -122,7 +122,7 @@ function ClientDetail() {
         {(
           [
             { v: "planning", l: `Planejamento (${planning.length})` },
-            { v: "review", l: `Pronto p/ revisão (${review.length})` },
+            { v: "review", l: `Produção (${review.length})` },
             { v: "approval", l: `Aprovação (${approval.length})` },
           ] as const
         ).map((t) => (
