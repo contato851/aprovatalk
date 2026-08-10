@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { getDesignSlotsByToken } from "@/lib/client-portal.functions";
 import { cn } from "@/lib/utils";
+import { RichTextArea } from "@/components/talk/rich-textarea";
 
 type Slot = {
   id?: string;
