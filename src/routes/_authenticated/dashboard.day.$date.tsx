@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listPosts, listClients } from "@/lib/admin.functions";
-import { format, parseISO, isSameDay } from "date-fns";
+import { format, parseISO, isSameDay, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { PlanningRow, statusLabel } from "@/components/talk/planning-row";
 
 export const Route = createFileRoute("/_authenticated/dashboard/day/$date")({
@@ -61,10 +61,28 @@ function DayPage() {
         >
           <ArrowLeft className="h-4 w-4" /> Voltar ao calendário
         </Link>
-        <h1 className="mt-3 font-display text-3xl font-bold capitalize">
-          {format(day, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <div className="mt-3 flex items-center justify-center gap-3">
+          <Link
+            to="/dashboard/day/$date"
+            params={{ date: format(subDays(day, 1), "yyyy-MM-dd") }}
+            className="rounded-full p-1.5 hover:bg-accent"
+            aria-label="Dia anterior"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="font-display text-3xl font-bold capitalize">
+            {format(day, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+          </h1>
+          <Link
+            to="/dashboard/day/$date"
+            params={{ date: format(addDays(day, 1), "yyyy-MM-dd") }}
+            className="rounded-full p-1.5 hover:bg-accent"
+            aria-label="Próximo dia"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Link>
+        </div>
+        <p className="mt-1 text-center text-sm text-muted-foreground">
           Planejamento do dia — um card por cliente.
         </p>
       </div>
