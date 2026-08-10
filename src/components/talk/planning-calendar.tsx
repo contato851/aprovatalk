@@ -351,7 +351,7 @@ export function PlanningCalendar({
                       value={row.time}
                       onChange={(e) => setRow(key, { time: e.target.value })}
                       aria-label="Horário de publicação"
-                      className="w-full shrink-0 rounded-md border border-input bg-background px-2 py-1.5 text-sm sm:w-20"
+                      className="w-full shrink-0 rounded-md border border-input bg-background py-1.5 pr-8 pl-2 text-sm sm:w-28"
                     />
                     <div className="flex shrink-0 flex-wrap gap-1">
                       {TYPES.map((t) => (
