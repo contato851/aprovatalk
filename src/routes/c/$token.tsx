@@ -104,10 +104,10 @@ function ClientFeed() {
         <div className="mx-auto flex max-w-md gap-1 px-5 pb-3 overflow-x-auto">
           {(
             [
+              { v: "calendar", l: "Calendário" },
               { v: "pending", l: "Pendentes" },
               { v: "rejected", l: "Em ajustes" },
               { v: "approved", l: "Aprovados" },
-              { v: "calendar", l: "Calendário" },
 
             ] as { v: Tab; l: string }[]
           ).map((t) => (
