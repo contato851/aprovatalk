@@ -46,6 +46,8 @@ function DayPage() {
     return list.find((p) => p.status === "planning") ?? list[0] ?? null;
   }
 
+  const clientsWithEvents = clients.filter((c) => postFor(c.id));
+
   function refetch() {
     postsQ.refetch();
   }
