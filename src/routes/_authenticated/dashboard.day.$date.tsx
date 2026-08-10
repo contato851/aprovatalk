@@ -109,6 +109,7 @@ function DayPage() {
                     <Link
                       to="/clients/$clientId"
                       params={{ clientId: c.id }}
+                      search={{ tab: "planning" as const }}
                       className="truncate text-sm font-semibold hover:underline"
                     >
                       {c.name}

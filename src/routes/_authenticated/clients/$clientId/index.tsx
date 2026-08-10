@@ -239,11 +239,9 @@ function ClientDetail() {
           <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
         ) : list.length === 0 ? (
           <p className="mt-4 rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-            {tab === "planning"
-              ? "Nenhum rascunho ainda. Crie um novo para começar o planejamento."
-              : tab === "review"
-                ? "Nenhum post em produção."
-                : "Nenhum post em aprovação."}
+            {tab === "review"
+              ? "Nenhum post em produção."
+              : "Nenhum post em aprovação."}
           </p>
         ) : (
           <div className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">

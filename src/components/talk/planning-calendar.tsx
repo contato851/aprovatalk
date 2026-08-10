@@ -263,14 +263,43 @@ export function PlanningCalendar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, overrides, baseline]);
 
+  const pendingUpdates = useMemo(() => {
+    return Object.keys(overrides).filter((k) => baseline[k]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overrides, baseline]);
+
+  const pendingTotal = pendingCreates.length + pendingUpdates.length;
+
   async function handleGenerate() {
-    if (pendingCreates.length === 0) {
-      toast.error("Nada novo para criar.");
+    if (pendingTotal === 0) {
+      toast.error("Nada para salvar.");
       return;
     }
     setSaving(true);
     try {
+      for (const key of pendingUpdates) {
+        clearTimeout(timers.current[key]);
+        const b = baseline[key]!;
+        const row = rowFor(key);
+        if (isEmptyRow(row) && b.status === "planning") {
+          await deletePostFn({ data: { id: b.id } });
+          continue;
+        }
+        await updatePlanningFn({
+          data: {
+            id: b.id,
+            type: row.type === "" ? undefined : row.type,
+            planning_title: row.title,
+            caption: row.caption,
+            briefing: row.briefing,
+            script: row.script,
+            internal_status: row.internal_status,
+            scheduled_at: scheduledISO(key, row.time),
+          },
+        });
+      }
       for (const { key, row } of pendingCreates) {
+        clearTimeout(timers.current[key]);
         await createPostFn({
           data: {
             client_id: clientId,
@@ -286,7 +315,7 @@ export function PlanningCalendar({
           },
         });
       }
-      toast.success(`${pendingCreates.length} item(ns) criado(s).`);
+      toast.success(`Planejamento salvo (${pendingTotal} item(ns)).`);
       setOverrides({});
       onCreated();
     } catch (e) {
@@ -295,6 +324,7 @@ export function PlanningCalendar({
       setSaving(false);
     }
   }
+
 
   return (
     <div className="rounded-2xl border border-border bg-card">
@@ -488,13 +518,14 @@ export function PlanningCalendar({
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border p-3">
             <p className="text-xs text-muted-foreground">
-              {pendingCreates.length === 0
-                ? "Alterações salvas automaticamente"
-                : `${pendingCreates.length} novo(s) para criar`}
+              {pendingTotal === 0
+                ? "Tudo salvo"
+                : `${pendingTotal} alteração(ões) pendente(s)`}
             </p>
             <button
               onClick={handleGenerate}
-              disabled={saving || pendingCreates.length === 0}
+              disabled={saving}
+
               className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
             >
               {saving ? (
