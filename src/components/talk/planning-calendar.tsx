@@ -97,16 +97,19 @@ export function PlanningCalendar({
     [cursor],
   );
 
-  // Posts já em planejamento, indexados por data (o primeiro de cada dia)
+  // Posts já criados, indexados por data (o primeiro de cada dia)
   const baseline = useMemo(() => {
-    const map: Record<string, Row & { id: string }> = {};
+    const map: Record<string, Row & { id: string; status: string }> = {};
     for (const p of existingPosts) {
-      if (p.status !== "planning") continue;
       const d = parseISO(p.scheduled_at);
       const key = format(d, "yyyy-MM-dd");
-      if (map[key]) continue;
+      const existing = map[key];
+      // prioriza o post ainda em planejamento no mesmo dia
+      if (existing && !(existing.status !== "planning" && p.status === "planning"))
+        continue;
       map[key] = {
         id: p.id,
+        status: p.status,
         title: p.planning_title || p.caption || "",
         type: p.type,
         time: format(d, "HH:mm"),
@@ -124,9 +127,10 @@ export function PlanningCalendar({
     if (o) return o;
     const b = baseline[key];
     if (!b) return emptyRow;
-    const { id: _id, ...rest } = b;
+    const { id: _id, status: _s, ...rest } = b;
     return rest;
   }
+
 
   function scheduledISO(key: string, time: string) {
     const [h, m] = (time || "12:00").split(":").map((n) => parseInt(n, 10));
@@ -319,9 +323,18 @@ export function PlanningCalendar({
                       </span>
                       {linked && (
                         <span className="ml-auto rounded-full bg-brand-purple-soft px-1.5 py-0.5 text-[10px] font-medium text-brand-purple sm:ml-0">
-                          1
+                          {linked.status === "planning"
+                            ? "Plano"
+                            : linked.status === "ready_for_review"
+                              ? "Produção"
+                              : linked.status === "approved"
+                                ? "Aprovado"
+                                : linked.status === "rejected"
+                                  ? "Ajustes"
+                                  : "Aprovação"}
                         </span>
                       )}
+
                     </div>
                     <input
                       value={row.title}
