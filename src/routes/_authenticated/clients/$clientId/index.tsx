@@ -164,6 +164,46 @@ function ClientDetail() {
         </div>
       )}
 
+      {tab === "review" && (
+        <div className="rounded-2xl border border-border bg-card p-3">
+          <h2 className="font-display text-lg font-semibold">
+            Puxar do planejamento
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Selecione um conteúdo planejado: todas as informações vêm juntas e
+            só falta adicionar a mídia.
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <select
+              value={pickId}
+              onChange={(e) => setPickId(e.target.value)}
+              aria-label="Post do planejamento"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Selecione um conteúdo planejado…</option>
+              {planning.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {format(parseISO(p.scheduled_at), "dd/MM", { locale: ptBR })} ·{" "}
+                  {p.planning_title || p.caption || "Sem título"}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleMoveToProduction}
+              disabled={!pickId || moving}
+              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              <Rocket className="h-4 w-4" /> Adicionar mídia
+            </button>
+          </div>
+          {planning.length === 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Nenhum conteúdo em planejamento.
+            </p>
+          )}
+        </div>
+      )}
+
       {tab !== "planning" && (
       <div>
         <PostSortFilterBar
@@ -173,6 +213,7 @@ function ClientDetail() {
           type={sf.type}
           setType={sf.setType}
         />
+
 
 
         {postsQ.isLoading ? (
