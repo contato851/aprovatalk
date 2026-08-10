@@ -244,6 +244,11 @@ export const createPost = createServerFn({ method: "POST" })
         client_id: z.string().uuid(),
         type: z.enum(["static", "carousel", "video"]),
         caption: z.string().default(""),
+        planning_title: z.string().optional(),
+        briefing: z.string().optional(),
+        script: z.string().optional(),
+        internal_status: z.enum(["draft", "producing", "ready"]).optional(),
+
         scheduled_at: z.string(),
         cover_path: z.string().nullable().optional(),
         media: z.array(mediaItem).default([]),
