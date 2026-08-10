@@ -22,6 +22,20 @@ function typeBadgeClass(t: string) {
       ? "bg-brand-purple text-white"
       : "bg-brand-chartreuse text-emerald-950";
 }
+function typeCardClass(t: string) {
+  return t === "static"
+    ? "bg-brand-orange/10 border-brand-orange/30"
+    : t === "carousel"
+      ? "bg-brand-purple/10 border-brand-purple/30"
+      : "bg-brand-chartreuse/15 border-brand-chartreuse/40";
+}
+function typeDotClass(t: string) {
+  return t === "static"
+    ? "bg-brand-orange"
+    : t === "carousel"
+      ? "bg-brand-purple"
+      : "bg-brand-chartreuse";
+}
 
 /** Calendário de planejamento em modo somente leitura (portal do cliente). */
 export function PlanningCalendarReadOnly({ posts }: { posts: any[] }) {
