@@ -10,6 +10,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { FormattedText } from "@/components/talk/rich-textarea";
 
 function typeLabel(t: string) {
   return t === "static" ? "Estático" : t === "carousel" ? "Carrossel" : "Reels";
@@ -139,9 +140,10 @@ function Block({ label, text }: { label: string; text: string }) {
       <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
-      <p className="whitespace-pre-wrap break-words rounded-md bg-muted/60 p-2 text-sm">
-        {text}
-      </p>
+      <FormattedText
+        text={text}
+        className="rounded-md bg-muted/60 p-2 break-words"
+      />
     </div>
   );
 }

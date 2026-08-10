@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { getDesignSlotsByToken } from "@/lib/client-portal.functions";
 import { cn } from "@/lib/utils";
+import { RichTextArea } from "@/components/talk/rich-textarea";
 
 type Slot = {
   id?: string;
@@ -484,21 +485,21 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
 
                     <div className="grid gap-2 sm:grid-cols-2">
                       <Field label="Briefing">
-                        <textarea
+                        <RichTextArea
+                          rows={8}
                           value={slot.briefing}
                           readOnly={readOnly}
-                          onChange={(e) => updateSlot(i, { briefing: e.target.value })}
+                          onChange={(v) => updateSlot(i, { briefing: v })}
                           placeholder="Objetivo, público, tom…"
-                          className="aspect-square w-full p-3 rounded-lg border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
                         />
                       </Field>
                       <Field label="Copy">
-                        <textarea
+                        <RichTextArea
+                          rows={8}
                           value={slot.copy}
                           readOnly={readOnly}
-                          onChange={(e) => updateSlot(i, { copy: e.target.value })}
+                          onChange={(v) => updateSlot(i, { copy: v })}
                           placeholder="Texto que vai na peça…"
-                          className="aspect-square w-full p-3 rounded-lg border bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
                         />
                       </Field>
                     </div>
