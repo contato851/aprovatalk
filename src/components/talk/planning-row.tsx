@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { format, parseISO } from "date-fns";
 import { ChevronDown, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
-import { createPost, updatePlanningPost } from "@/lib/admin.functions";
+import { createPost, deletePost, updatePlanningPost } from "@/lib/admin.functions";
 import { RichTextArea } from "@/components/talk/rich-textarea";
 
 type PostType = "static" | "carousel" | "video" | "";
@@ -36,6 +36,16 @@ function scriptPlaceholder(type: PostType) {
   if (type === "carousel") return "O que entra em cada slide";
   if (type === "static") return "Estrutura da arte / elementos da imagem";
   return "Roteiro / estrutura do conteúdo";
+}
+
+function isEmptyRow(r: Row) {
+  return (
+    !r.title.trim() &&
+    r.type === "" &&
+    !r.briefing.trim() &&
+    !r.script.trim() &&
+    !r.caption.trim()
+  );
 }
 
 export function statusLabel(status: string) {
@@ -71,6 +81,7 @@ export function PlanningRow({
 }) {
   const createPostFn = useServerFn(createPost);
   const updatePlanningFn = useServerFn(updatePlanningPost);
+  const deletePostFn = useServerFn(deletePost);
   const [open, setOpen] = useState(defaultOpen);
   const [saving, setSaving] = useState(false);
   const [override, setOverride] = useState<Row | null>(null);
@@ -125,6 +136,18 @@ export function PlanningRow({
     setOverride(next);
     if (!post) return;
     if (timer.current) clearTimeout(timer.current);
+    if (isEmptyRow(next) && post.status === "planning") {
+      timer.current = setTimeout(() => {
+        deletePostFn({ data: { id: post.id } })
+          .then(() => {
+            setOverride(null);
+            toast.success("Conteúdo removido.");
+            onSaved();
+          })
+          .catch(() => toast.error("Não foi possível remover."));
+      }, 800);
+      return;
+    }
     timer.current = setTimeout(() => {
       updatePlanningFn({
         data: {
