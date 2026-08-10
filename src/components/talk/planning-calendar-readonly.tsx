@@ -116,16 +116,11 @@ export function PlanningCalendarReadOnly({ posts }: { posts: any[] }) {
                       </div>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[11px] text-muted-foreground">
-                          {format(d, "dd/MM 'às' HH'h'mm", { locale: ptBR })}
-                        </span>
+                      <div className="text-[11px] text-muted-foreground">
+                        {format(d, "dd/MM 'às' HH'h'mm", { locale: ptBR })}
                       </div>
                       <p className="mt-1 break-words text-sm font-medium">
                         {title}
-                        <span className="ml-2 text-[10px] font-normal text-muted-foreground">
-                          ({typeLabel(p.type)})
-                        </span>
                       </p>
                     </div>
                     <ChevronDown
