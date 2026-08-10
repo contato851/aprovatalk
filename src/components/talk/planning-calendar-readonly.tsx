@@ -118,7 +118,7 @@ export function PlanningCalendarReadOnly({ posts }: { posts: any[] }) {
                     <div className="min-w-0 flex-1">
                       <div className="text-[11px] text-muted-foreground">
                         {format(d, "dd/MM 'às' HH'h'mm", { locale: ptBR })} ·{" "}
-                        <span className="text-foreground">{typeLabel(p.type)}</span>
+                        {typeLabel(p.type)}
                       </div>
                       <p className="mt-1 break-words text-sm font-medium">
                         {title}
