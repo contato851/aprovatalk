@@ -314,7 +314,7 @@ export function PlanningCalendar({
               return (
                 <li key={key} className={weekend ? "bg-muted/40" : ""}>
                   <div className="flex flex-col gap-2 p-2.5 sm:flex-row sm:items-center">
-                    <div className="flex w-full shrink-0 items-center gap-2 sm:w-28">
+                    <div className="flex w-full min-w-0 shrink-0 flex-wrap items-center gap-x-2 gap-y-1 sm:w-32">
                       <span className="font-display text-lg font-bold leading-none">
                         {format(day, "dd")}
                       </span>
@@ -322,7 +322,7 @@ export function PlanningCalendar({
                         {format(day, "EEE", { locale: ptBR })}
                       </span>
                       {linked && (
-                        <span className="ml-auto rounded-full bg-brand-purple-soft px-1.5 py-0.5 text-[10px] font-medium text-brand-purple sm:ml-0">
+                        <span className="max-w-full truncate rounded-full bg-brand-purple-soft px-1.5 py-0.5 text-[10px] font-medium text-brand-purple">
                           {linked.status === "planning"
                             ? "Plano"
                             : linked.status === "ready_for_review"
@@ -340,10 +340,11 @@ export function PlanningCalendar({
                       value={row.title}
                       onChange={(e) => setRow(key, { title: e.target.value })}
                       placeholder="Título do conteúdo"
-                      className={`w-full rounded-md border bg-background px-3 py-1.5 text-sm ${
+                      className={`w-full min-w-0 flex-1 rounded-md border bg-background px-3 py-1.5 text-sm ${
                         linked ? "border-brand-purple/40" : "border-input"
                       }`}
                     />
+
                     <input
                       type="time"
                       value={row.time}
