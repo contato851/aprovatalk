@@ -22,6 +22,20 @@ function typeBadgeClass(t: string) {
       ? "bg-brand-purple text-white"
       : "bg-brand-chartreuse text-emerald-950";
 }
+function typeCardClass(t: string) {
+  return t === "static"
+    ? "bg-brand-orange/10 border-brand-orange/30"
+    : t === "carousel"
+      ? "bg-brand-purple/10 border-brand-purple/30"
+      : "bg-brand-chartreuse/15 border-brand-chartreuse/40";
+}
+function typeDotClass(t: string) {
+  return t === "static"
+    ? "bg-brand-orange"
+    : t === "carousel"
+      ? "bg-brand-purple"
+      : "bg-brand-chartreuse";
+}
 
 /** Calendário de planejamento em modo somente leitura (portal do cliente). */
 export function PlanningCalendarReadOnly({ posts }: { posts: any[] }) {
@@ -69,47 +83,50 @@ export function PlanningCalendarReadOnly({ posts }: { posts: any[] }) {
           Nenhum conteúdo planejado neste mês.
         </p>
       ) : (
-        <ul className="divide-y divide-border">
-          {monthPosts.map((p) => {
-            const d = parseISO(p.scheduled_at);
-            const isOpen = !!open[p.id];
-            const title = p.planning_title || p.caption || "Sem título";
-            const hasDetails = p.briefing || p.script || p.caption;
-            return (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => setOpen((o) => ({ ...o, [p.id]: !o[p.id] }))}
-                  aria-expanded={isOpen}
-                  className="flex w-full items-start gap-3 p-3 text-left hover:bg-accent/40"
-                >
-                  <div className="w-12 shrink-0 text-center">
-                    <div className="font-display text-lg font-bold leading-none">
-                      {format(d, "dd")}
+        <>
+          <div className="flex flex-wrap items-center gap-3 border-b border-border bg-background/40 p-3 text-[11px]">
+            <span className="text-muted-foreground">Legenda:</span>
+            {(["static", "carousel", "video"] as const).map((t) => (
+              <div key={t} className="inline-flex items-center gap-1.5">
+                <span className={`h-2.5 w-2.5 rounded-full ${typeDotClass(t)}`} />
+                <span className="text-foreground">{typeLabel(t)}</span>
+              </div>
+            ))}
+          </div>
+          <ul className="divide-y divide-border">
+            {monthPosts.map((p) => {
+              const d = parseISO(p.scheduled_at);
+              const isOpen = !!open[p.id];
+              const title = p.planning_title || p.caption || "Sem título";
+              const hasDetails = p.briefing || p.script || p.caption;
+              return (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    onClick={() => setOpen((o) => ({ ...o, [p.id]: !o[p.id] }))}
+                    aria-expanded={isOpen}
+                    className={`flex w-full items-start gap-3 border-b p-3 text-left transition hover:bg-accent/40 ${typeCardClass(p.type)}`}
+                  >
+                    <div className="w-12 shrink-0 text-center">
+                      <div className="font-display text-lg font-bold leading-none">
+                        {format(d, "dd")}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        {format(d, "EEE", { locale: ptBR })}
+                      </div>
                     </div>
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      {format(d, "EEE", { locale: ptBR })}
-                    </div>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span
-                        className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${typeBadgeClass(p.type)}`}
-                      >
-                        {typeLabel(p.type)}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] text-muted-foreground">
                         {format(d, "dd/MM 'às' HH'h'mm", { locale: ptBR })}
-                      </span>
+                      </div>
+                      <p className="mt-1 break-words text-sm font-medium">
+                        {title}
+                      </p>
                     </div>
-                    <p className="mt-1 break-words text-sm font-medium">
-                      {title}
-                    </p>
-                  </div>
-                  <ChevronDown
-                    className={`mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`}
-                  />
-                </button>
+                    <ChevronDown
+                      className={`mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`}
+                    />
+                  </button>
 
                 {isOpen && (
                   <div className="space-y-3 border-t border-border/60 bg-background/40 p-3">
@@ -129,6 +146,7 @@ export function PlanningCalendarReadOnly({ posts }: { posts: any[] }) {
             );
           })}
         </ul>
+      </>
       )}
     </div>
   );
