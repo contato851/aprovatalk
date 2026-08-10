@@ -296,6 +296,8 @@ function ClientDetail() {
           </div>
         )}
       </div>
+      )}
+
     </div>
   );
 }
