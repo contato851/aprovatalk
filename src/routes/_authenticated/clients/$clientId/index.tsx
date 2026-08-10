@@ -35,6 +35,23 @@ function ClientDetail() {
   const getClientFn = useServerFn(getClient);
   const listPostsFn = useServerFn(listPosts);
   const releaseFn = useServerFn(releasePostForApproval);
+  const moveFn = useServerFn(movePostToProduction);
+  const [pickId, setPickId] = useState("");
+  const [moving, setMoving] = useState(false);
+
+  async function handleMoveToProduction() {
+    if (!pickId) return;
+    setMoving(true);
+    try {
+      await moveFn({ data: { id: pickId } });
+      navigate({ to: "/posts/$postId/edit", params: { postId: pickId } });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setMoving(false);
+    }
+  }
+
 
   const clientQ = useQuery({
     queryKey: ["client", clientId],
