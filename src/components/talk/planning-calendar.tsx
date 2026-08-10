@@ -19,7 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import { createPost, updatePlanningPost } from "@/lib/admin.functions";
+import { createPost, deletePost, updatePlanningPost } from "@/lib/admin.functions";
 import { RichTextArea } from "@/components/talk/rich-textarea";
 
 type PostType = "static" | "carousel" | "video" | "";
@@ -54,6 +54,16 @@ export function scriptPlaceholder(type: PostType) {
   return "Roteiro / estrutura do conteúdo";
 }
 
+function isEmptyRow(r: Row) {
+  return (
+    !r.title.trim() &&
+    r.type === "" &&
+    !r.briefing.trim() &&
+    !r.script.trim() &&
+    !r.caption.trim()
+  );
+}
+
 const emptyRow: Row = {
   title: "",
   type: "",
@@ -75,6 +85,7 @@ export function PlanningCalendar({
 }) {
   const createPostFn = useServerFn(createPost);
   const updatePlanningFn = useServerFn(updatePlanningPost);
+  const deletePostFn = useServerFn(deletePost);
   const [cursor, setCursor] = useState(new Date());
   const [collapsed, setCollapsed] = useState(true);
   const [overrides, setOverrides] = useState<Record<string, Row>>({});
@@ -152,6 +163,22 @@ export function PlanningCalendar({
     if (!b) return;
     // autosave (debounce) para posts que já existem
     clearTimeout(timers.current[key]);
+    if (isEmptyRow(next) && b.status === "planning") {
+      timers.current[key] = setTimeout(() => {
+        deletePostFn({ data: { id: b.id } })
+          .then(() => {
+            setOverrides((prev) => {
+              const n = { ...prev };
+              delete n[key];
+              return n;
+            });
+            toast.success("Conteúdo removido.");
+            onCreated();
+          })
+          .catch(() => toast.error("Não foi possível remover."));
+      }, 800);
+      return;
+    }
     timers.current[key] = setTimeout(() => {
       updatePlanningFn({
         data: {
