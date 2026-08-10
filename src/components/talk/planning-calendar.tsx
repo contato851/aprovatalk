@@ -165,7 +165,60 @@ export function PlanningCalendar({
     }, 800);
   }
 
-  const pendingCreates = useMemo(() => {
+  async function saveRow(key: string) {
+    const row = rowFor(key);
+    if (!row.title.trim() || row.type === "") {
+      toast.error("Preencha o título e o tipo de conteúdo.");
+      return;
+    }
+    clearTimeout(timers.current[key]);
+    setRowSaving((p) => ({ ...p, [key]: true }));
+    try {
+      const b = baseline[key];
+      if (b) {
+        await updatePlanningFn({
+          data: {
+            id: b.id,
+            type: row.type as "static" | "carousel" | "video",
+            planning_title: row.title.trim(),
+            caption: row.caption,
+            briefing: row.briefing,
+            script: row.script,
+            internal_status: row.internal_status,
+            scheduled_at: scheduledISO(key, row.time),
+          },
+        });
+      } else {
+        await createPostFn({
+          data: {
+            client_id: clientId,
+            type: row.type as "static" | "carousel" | "video",
+            caption: row.caption,
+            planning_title: row.title.trim(),
+            briefing: row.briefing,
+            script: row.script,
+            internal_status: row.internal_status,
+            scheduled_at: scheduledISO(key, row.time),
+            media: [],
+            status: "planning",
+          },
+        });
+        setOverrides((prev) => {
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        });
+      }
+      toast.success("Salvo — já aparece no calendário do cliente.");
+      onCreated();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao salvar.");
+    } finally {
+      setRowSaving((p) => ({ ...p, [key]: false }));
+    }
+  }
+
+
     const creates: { key: string; row: Row }[] = [];
     for (const day of days) {
       const key = format(day, "yyyy-MM-dd");
