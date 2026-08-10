@@ -218,7 +218,7 @@ export function PlanningCalendar({
     }
   }
 
-
+  const pendingCreates = useMemo(() => {
     const creates: { key: string; row: Row }[] = [];
     for (const day of days) {
       const key = format(day, "yyyy-MM-dd");
