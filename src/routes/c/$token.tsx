@@ -33,12 +33,12 @@ export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
 });
 
-type Tab = "pending" | "approved" | "rejected" | "calendar";
+type Tab = "calendar" | "pending" | "approved" | "rejected";
 
 function ClientFeed() {
   const { token } = Route.useParams();
   const getPortalFn = useServerFn(getClientPortal);
-  const [tab, setTab] = useState<Tab>("pending");
+  const [tab, setTab] = useState<Tab>("calendar");
 
 
   const q = useQuery({
@@ -104,10 +104,10 @@ function ClientFeed() {
         <div className="mx-auto flex max-w-md gap-1 px-5 pb-3 overflow-x-auto">
           {(
             [
+              { v: "calendar", l: "Calendário" },
               { v: "pending", l: "Pendentes" },
               { v: "rejected", l: "Em ajustes" },
               { v: "approved", l: "Aprovados" },
-              { v: "calendar", l: "Calendário" },
 
             ] as { v: Tab; l: string }[]
           ).map((t) => (
