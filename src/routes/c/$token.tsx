@@ -125,7 +125,9 @@ function ClientFeed() {
       </header>
 
       <div className="mx-auto max-w-md space-y-8 px-4 py-6">
-        {filtered.length === 0 ? (
+        {tab === "calendar" ? (
+          <PlanningCalendarReadOnly posts={allPosts} />
+        ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card py-16 text-center">
             <TalkStar className="mx-auto h-8 w-8 text-brand-chartreuse" />
             <p className="mt-3 text-sm text-muted-foreground">
@@ -142,6 +144,7 @@ function ClientFeed() {
           ))
         )}
       </div>
+
     </main>
   );
 }
