@@ -119,7 +119,12 @@ export function PlanningCalendarReadOnly({ posts }: { posts: any[] }) {
                       <div className="text-[11px] text-muted-foreground">
                         {format(d, "dd/MM 'às' HH'h'mm", { locale: ptBR })}
                       </div>
-                      <p className="mt-1 break-words text-sm font-medium">
+                      <span
+                        className={`mt-1.5 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${typeBadgeClass(p.type)}`}
+                      >
+                        {typeLabel(p.type)}
+                      </span>
+                      <p className="mt-1.5 break-words text-sm font-medium">
                         {title}
                       </p>
                     </div>
