@@ -79,6 +79,7 @@ export function PlanningCalendar({
   const [overrides, setOverrides] = useState<Record<string, Row>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
+  const [rowSaving, setRowSaving] = useState<Record<string, boolean>>({});
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
