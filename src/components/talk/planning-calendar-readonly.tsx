@@ -10,6 +10,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { FormattedText } from "@/components/talk/rich-textarea";
 
 function typeLabel(t: string) {
   return t === "static" ? "Estático" : t === "carousel" ? "Carrossel" : "Reels";
