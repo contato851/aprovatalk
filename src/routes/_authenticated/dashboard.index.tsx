@@ -279,10 +279,11 @@ function CalendarView({ posts }: { posts: Post[] }) {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-center gap-2">
         <button
           onClick={() => setCursor(subMonths(cursor, 1))}
           className="rounded-full p-1.5 hover:bg-accent"
+          aria-label="Mês anterior"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -292,6 +293,7 @@ function CalendarView({ posts }: { posts: Post[] }) {
         <button
           onClick={() => setCursor(addMonths(cursor, 1))}
           className="rounded-full p-1.5 hover:bg-accent"
+          aria-label="Próximo mês"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
