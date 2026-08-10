@@ -151,6 +151,7 @@ export function PlanningCalendarReadOnly({ posts }: { posts: any[] }) {
             );
           })}
         </ul>
+      </>
       )}
     </div>
   );
