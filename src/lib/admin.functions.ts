@@ -275,6 +275,11 @@ export const createPost = createServerFn({ method: "POST" })
         client_id: data.client_id,
         type: data.type,
         caption: data.caption,
+        planning_title: data.planning_title ?? "",
+        briefing: data.briefing ?? "",
+        script: data.script ?? "",
+        internal_status: data.internal_status ?? "draft",
+
         scheduled_at: data.scheduled_at,
         cover_url: data.cover_path ?? null,
         status: data.status,
