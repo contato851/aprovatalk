@@ -518,13 +518,14 @@ export function PlanningCalendar({
 
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border p-3">
             <p className="text-xs text-muted-foreground">
-              {pendingCreates.length === 0
-                ? "Alterações salvas automaticamente"
-                : `${pendingCreates.length} novo(s) para criar`}
+              {pendingTotal === 0
+                ? "Tudo salvo"
+                : `${pendingTotal} alteração(ões) pendente(s)`}
             </p>
             <button
               onClick={handleGenerate}
-              disabled={saving || pendingCreates.length === 0}
+              disabled={saving}
+
               className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
             >
               {saving ? (
