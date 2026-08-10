@@ -337,7 +337,28 @@ export const updatePlanningPost = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
+/** Move um post de "planning" para "ready_for_review" (Produção). */
+export const movePostToProduction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { data: post, error } = await context.supabase
+      .from("posts")
+      .select("id, status")
+      .eq("id", data.id)
+      .single();
+    if (error) throw error;
+    if (post.status !== "planning") {
+      throw new Error("Somente posts em planejamento podem ir para produção.");
+    }
+    const { error: uErr } = await context.supabase
+      .from("posts")
+      .update({ status: "ready_for_review", internal_status: "producing" })
+      .eq("id", data.id);
+    if (uErr) throw uErr;
+    return { ok: true as const };
+  });
 
 /**
  * Atualiza post + substitui mídia.

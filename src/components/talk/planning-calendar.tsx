@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Save,
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -79,6 +80,7 @@ export function PlanningCalendar({
   const [overrides, setOverrides] = useState<Record<string, Row>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
+  const [rowSaving, setRowSaving] = useState<Record<string, boolean>>({});
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
@@ -162,6 +164,59 @@ export function PlanningCalendar({
         .then(() => onCreated())
         .catch(() => toast.error("Não foi possível salvar."));
     }, 800);
+  }
+
+  async function saveRow(key: string) {
+    const row = rowFor(key);
+    if (!row.title.trim() || row.type === "") {
+      toast.error("Preencha o título e o tipo de conteúdo.");
+      return;
+    }
+    clearTimeout(timers.current[key]);
+    setRowSaving((p) => ({ ...p, [key]: true }));
+    try {
+      const b = baseline[key];
+      if (b) {
+        await updatePlanningFn({
+          data: {
+            id: b.id,
+            type: row.type as "static" | "carousel" | "video",
+            planning_title: row.title.trim(),
+            caption: row.caption,
+            briefing: row.briefing,
+            script: row.script,
+            internal_status: row.internal_status,
+            scheduled_at: scheduledISO(key, row.time),
+          },
+        });
+      } else {
+        await createPostFn({
+          data: {
+            client_id: clientId,
+            type: row.type as "static" | "carousel" | "video",
+            caption: row.caption,
+            planning_title: row.title.trim(),
+            briefing: row.briefing,
+            script: row.script,
+            internal_status: row.internal_status,
+            scheduled_at: scheduledISO(key, row.time),
+            media: [],
+            status: "planning",
+          },
+        });
+        setOverrides((prev) => {
+          const next = { ...prev };
+          delete next[key];
+          return next;
+        });
+      }
+      toast.success("Salvo — já aparece no calendário do cliente.");
+      onCreated();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao salvar.");
+    } finally {
+      setRowSaving((p) => ({ ...p, [key]: false }));
+    }
   }
 
   const pendingCreates = useMemo(() => {
@@ -306,6 +361,19 @@ export function PlanningCalendar({
                       ))}
                       <button
                         type="button"
+                        onClick={() => saveRow(key)}
+                        disabled={!!rowSaving[key]}
+                        className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        {rowSaving[key] ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Save className="h-3.5 w-3.5" />
+                        )}
+                        Salvar
+                      </button>
+                      <button
+                        type="button"
                         onClick={() =>
                           setExpanded((p) => ({ ...p, [key]: !p[key] }))
                         }
@@ -324,9 +392,8 @@ export function PlanningCalendar({
                     <div className="space-y-3 border-t border-border/60 bg-background/40 p-3">
                       {!linked && (
                         <p className="rounded-md bg-muted p-2 text-[11px] text-muted-foreground">
-                          Preencha título e tipo e clique em “Salvar
-                          planejamento” para começar a salvar os detalhes
-                          automaticamente.
+                          Preencha título e tipo e clique em “Salvar” para publicar
+                          este item no calendário do cliente.
                         </p>
                       )}
                       <Field

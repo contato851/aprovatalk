@@ -86,7 +86,7 @@ function StatusBadge({ status }: { status: string }) {
     approved: { label: "Aprovado", className: "bg-brand-chartreuse-soft text-emerald-700 border-brand-chartreuse/30" },
     rejected: { label: "Reprovado", className: "bg-brand-purple-soft text-brand-purple border-brand-purple/30" },
     planning: { label: "Planejamento", className: "bg-muted text-muted-foreground border-border" },
-    ready_for_review: { label: "Pronto p/ revisão", className: "bg-brand-chartreuse-soft text-emerald-700 border-brand-chartreuse/30" },
+    ready_for_review: { label: "Produção", className: "bg-brand-chartreuse-soft text-emerald-700 border-brand-chartreuse/30" },
   };
   const it = map[status] ?? map.pending;
   return (

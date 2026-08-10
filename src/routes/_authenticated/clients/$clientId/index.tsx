@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -5,6 +6,7 @@ import { z } from "zod";
 import {
   getClient,
   listPosts,
+  movePostToProduction,
   releasePostForApproval,
 } from "@/lib/admin.functions";
 import { format, parseISO } from "date-fns";
@@ -35,6 +37,23 @@ function ClientDetail() {
   const getClientFn = useServerFn(getClient);
   const listPostsFn = useServerFn(listPosts);
   const releaseFn = useServerFn(releasePostForApproval);
+  const moveFn = useServerFn(movePostToProduction);
+  const [pickId, setPickId] = useState("");
+  const [moving, setMoving] = useState(false);
+
+  async function handleMoveToProduction() {
+    if (!pickId) return;
+    setMoving(true);
+    try {
+      await moveFn({ data: { id: pickId } });
+      navigate({ to: "/posts/$postId/edit", params: { postId: pickId } });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro");
+    } finally {
+      setMoving(false);
+    }
+  }
+
 
   const clientQ = useQuery({
     queryKey: ["client", clientId],
@@ -122,7 +141,7 @@ function ClientDetail() {
         {(
           [
             { v: "planning", l: `Planejamento (${planning.length})` },
-            { v: "review", l: `Pronto p/ revisão (${review.length})` },
+            { v: "review", l: `Produção (${review.length})` },
             { v: "approval", l: `Aprovação (${approval.length})` },
           ] as const
         ).map((t) => (
@@ -164,6 +183,46 @@ function ClientDetail() {
         </div>
       )}
 
+      {tab === "review" && (
+        <div className="rounded-2xl border border-border bg-card p-3">
+          <h2 className="font-display text-lg font-semibold">
+            Puxar do planejamento
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Selecione um conteúdo planejado: todas as informações vêm juntas e
+            só falta adicionar a mídia.
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <select
+              value={pickId}
+              onChange={(e) => setPickId(e.target.value)}
+              aria-label="Post do planejamento"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Selecione um conteúdo planejado…</option>
+              {planning.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {format(parseISO(p.scheduled_at), "dd/MM", { locale: ptBR })} ·{" "}
+                  {p.planning_title || p.caption || "Sem título"}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleMoveToProduction}
+              disabled={!pickId || moving}
+              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              <Rocket className="h-4 w-4" /> Adicionar mídia
+            </button>
+          </div>
+          {planning.length === 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Nenhum conteúdo em planejamento.
+            </p>
+          )}
+        </div>
+      )}
+
       {tab !== "planning" && (
       <div>
         <PostSortFilterBar
@@ -175,6 +234,7 @@ function ClientDetail() {
         />
 
 
+
         {postsQ.isLoading ? (
           <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
         ) : list.length === 0 ? (
@@ -182,7 +242,7 @@ function ClientDetail() {
             {tab === "planning"
               ? "Nenhum rascunho ainda. Crie um novo para começar o planejamento."
               : tab === "review"
-                ? "Nenhum post aguardando revisão."
+                ? "Nenhum post em produção."
                 : "Nenhum post em aprovação."}
           </p>
         ) : (
@@ -252,7 +312,7 @@ function ClientDetail() {
                         {p.status === "planning"
                           ? "Planejamento"
                           : p.status === "ready_for_review"
-                            ? "Pronto p/ revisão"
+                            ? "Produção"
                             : p.status === "approved"
                               ? "Aprovado"
                               : p.status === "rejected"
