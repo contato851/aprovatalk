@@ -71,13 +71,13 @@ function DayPage() {
 
       {postsQ.isLoading || clientsQ.isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando…</p>
-      ) : clients.length === 0 ? (
+      ) : clientsWithEvents.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
-          Nenhum cliente cadastrado.
+          Nenhum cliente com eventos nesta data.
         </div>
       ) : (
         <ul className="space-y-3">
-          {clients.map((c) => {
+          {clientsWithEvents.map((c) => {
             const post = postFor(c.id);
             return (
               <PlanningRow
