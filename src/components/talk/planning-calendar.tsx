@@ -263,14 +263,43 @@ export function PlanningCalendar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, overrides, baseline]);
 
+  const pendingUpdates = useMemo(() => {
+    return Object.keys(overrides).filter((k) => baseline[k]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overrides, baseline]);
+
+  const pendingTotal = pendingCreates.length + pendingUpdates.length;
+
   async function handleGenerate() {
-    if (pendingCreates.length === 0) {
-      toast.error("Nada novo para criar.");
+    if (pendingTotal === 0) {
+      toast.error("Nada para salvar.");
       return;
     }
     setSaving(true);
     try {
+      for (const key of pendingUpdates) {
+        clearTimeout(timers.current[key]);
+        const b = baseline[key]!;
+        const row = rowFor(key);
+        if (isEmptyRow(row) && b.status === "planning") {
+          await deletePostFn({ data: { id: b.id } });
+          continue;
+        }
+        await updatePlanningFn({
+          data: {
+            id: b.id,
+            type: row.type === "" ? undefined : row.type,
+            planning_title: row.title,
+            caption: row.caption,
+            briefing: row.briefing,
+            script: row.script,
+            internal_status: row.internal_status,
+            scheduled_at: scheduledISO(key, row.time),
+          },
+        });
+      }
       for (const { key, row } of pendingCreates) {
+        clearTimeout(timers.current[key]);
         await createPostFn({
           data: {
             client_id: clientId,
@@ -286,7 +315,7 @@ export function PlanningCalendar({
           },
         });
       }
-      toast.success(`${pendingCreates.length} item(ns) criado(s).`);
+      toast.success(`Planejamento salvo (${pendingTotal} item(ns)).`);
       setOverrides({});
       onCreated();
     } catch (e) {
@@ -295,6 +324,7 @@ export function PlanningCalendar({
       setSaving(false);
     }
   }
+
 
   return (
     <div className="rounded-2xl border border-border bg-card">
