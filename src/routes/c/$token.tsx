@@ -31,7 +31,7 @@ export const Route = createFileRoute("/c/$token")({
   component: ClientFeed,
 });
 
-type Tab = "pending" | "approved" | "rejected";
+type Tab = "pending" | "approved" | "rejected" | "calendar";
 
 function ClientFeed() {
   const { token } = Route.useParams();
@@ -47,6 +47,7 @@ function ClientFeed() {
 
   const allPosts = (q.data?.posts ?? []) as any[];
   const sf = usePostSortFilter(allPosts.filter((p: any) => p.status === tab));
+
 
   if (q.isLoading) {
     return (
