@@ -360,6 +360,19 @@ export function PlanningCalendar({
                       ))}
                       <button
                         type="button"
+                        onClick={() => saveRow(key)}
+                        disabled={!!rowSaving[key]}
+                        className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        {rowSaving[key] ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Save className="h-3.5 w-3.5" />
+                        )}
+                        Salvar
+                      </button>
+                      <button
+                        type="button"
                         onClick={() =>
                           setExpanded((p) => ({ ...p, [key]: !p[key] }))
                         }
