@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createPost, updatePlanningPost } from "@/lib/admin.functions";
+import { RichTextArea } from "@/components/talk/rich-textarea";
 
 type PostType = "static" | "carousel" | "video" | "";
 type InternalStatus = "draft" | "producing" | "ready";
