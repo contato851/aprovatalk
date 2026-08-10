@@ -203,49 +203,61 @@ export type Database = {
       }
       posts: {
         Row: {
+          briefing: string
           caption: string
           client_comment: string | null
           client_id: string
           cover_url: string | null
           created_at: string
           id: string
+          internal_status: string
           linked_delivery_slot_id: string | null
           linked_design_slot_id: string | null
           midia_arquivada: boolean
+          planning_title: string
           responded_at: string | null
           scheduled_at: string
+          script: string
           status: Database["public"]["Enums"]["post_status"]
           type: Database["public"]["Enums"]["post_type"]
           updated_at: string
         }
         Insert: {
+          briefing?: string
           caption?: string
           client_comment?: string | null
           client_id: string
           cover_url?: string | null
           created_at?: string
           id?: string
+          internal_status?: string
           linked_delivery_slot_id?: string | null
           linked_design_slot_id?: string | null
           midia_arquivada?: boolean
+          planning_title?: string
           responded_at?: string | null
           scheduled_at: string
+          script?: string
           status?: Database["public"]["Enums"]["post_status"]
           type: Database["public"]["Enums"]["post_type"]
           updated_at?: string
         }
         Update: {
+          briefing?: string
           caption?: string
           client_comment?: string | null
           client_id?: string
           cover_url?: string | null
           created_at?: string
           id?: string
+          internal_status?: string
           linked_delivery_slot_id?: string | null
           linked_design_slot_id?: string | null
           midia_arquivada?: boolean
+          planning_title?: string
           responded_at?: string | null
           scheduled_at?: string
+          script?: string
           status?: Database["public"]["Enums"]["post_status"]
           type?: Database["public"]["Enums"]["post_type"]
           updated_at?: string
