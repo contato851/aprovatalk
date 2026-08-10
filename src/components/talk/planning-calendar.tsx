@@ -392,9 +392,8 @@ export function PlanningCalendar({
                     <div className="space-y-3 border-t border-border/60 bg-background/40 p-3">
                       {!linked && (
                         <p className="rounded-md bg-muted p-2 text-[11px] text-muted-foreground">
-                          Preencha título e tipo e clique em “Salvar
-                          planejamento” para começar a salvar os detalhes
-                          automaticamente.
+                          Preencha título e tipo e clique em “Salvar” para publicar
+                          este item no calendário do cliente.
                         </p>
                       )}
                       <Field
