@@ -1,3 +1,4 @@
+import { useUserEmail, isPlanningEditor, canViewScripts } from "@/lib/permissions";
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import {
   addBusinessDays,
@@ -54,6 +55,9 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
   const [loading, setLoading] = useState(false);
   const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [scripts, setScripts] = useState<ScriptOption[]>([]);
+  const email = useUserEmail();
+  const canLinkScript = isPlanningEditor(email);
+  const canOpenScript = canViewScripts(email);
 
   useEffect(() => {
     if (readOnly || token) return;
@@ -376,45 +380,52 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                         <span className="hidden sm:inline">Abrir</span>
                       </a>
                     </div>
-                    {!readOnly && (
+                    {!readOnly && (canLinkScript || canOpenScript) && (
                       <div className="min-w-0 sm:col-span-2 flex gap-2">
-                        <select
-                          aria-label="Roteiro vinculado"
-                          value={slot.script_id ?? ""}
-                          onChange={(e) => {
-                            const id = e.target.value;
-                            const sc = scripts.find((x) => x.id === id);
-                            updateSlot(
-                              i,
-                              sc
-                                ? { script_id: id, client: sc.client_name, title: sc.title }
-                                : { script_id: null },
-                              true,
-                            );
-                          }}
-                          className="w-full h-9 px-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
-                        >
-                          <option value="">Vincular roteiro…</option>
-                          {scripts.map((sc) => (
-                            <option key={sc.id} value={sc.id}>
-                              {sc.client_name ? `${sc.client_name} · ` : ""}
-                              {sc.title}
-                            </option>
-                          ))}
-                        </select>
-                        <Link
-                          to="/roteiros"
-                          search={{ script: slot.script_id ?? undefined }}
-
-                          aria-label="Abrir roteiro"
-                          title="Abrir roteiro"
-                          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium hover:bg-accent"
-                        >
-                          <FileText className="h-4 w-4" />
-                          <span className="hidden sm:inline">Roteiro</span>
-                        </Link>
+                        {canLinkScript && (
+                          <select
+                            aria-label="Roteiro vinculado"
+                            value={slot.script_id ?? ""}
+                            onChange={(e) => {
+                              const id = e.target.value;
+                              const sc = scripts.find((x) => x.id === id);
+                              updateSlot(
+                                i,
+                                sc
+                                  ? { script_id: id, client: sc.client_name, title: sc.title }
+                                  : { script_id: null },
+                                true,
+                              );
+                            }}
+                            className="w-full h-9 px-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                          >
+                            <option value="">Vincular roteiro…</option>
+                            {scripts.map((sc) => (
+                              <option key={sc.id} value={sc.id}>
+                                {sc.client_name ? `${sc.client_name} · ` : ""}
+                                {sc.title}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {canOpenScript && (
+                          <Link
+                            to="/roteiros"
+                            search={{ script: slot.script_id ?? undefined }}
+                            aria-label="Abrir roteiro"
+                            title="Abrir roteiro"
+                            className={cn(
+                              "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium hover:bg-accent",
+                              !canLinkScript && "w-full justify-center",
+                            )}
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span className="hidden sm:inline">Roteiro</span>
+                          </Link>
+                        )}
                       </div>
                     )}
+
 
                   </div>
 
