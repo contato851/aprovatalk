@@ -54,6 +54,9 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
   const [loading, setLoading] = useState(false);
   const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [scripts, setScripts] = useState<ScriptOption[]>([]);
+  const email = useUserEmail();
+  const canLinkScript = isPlanningEditor(email);
+  const canOpenScript = canViewScripts(email);
 
   useEffect(() => {
     if (readOnly || token) return;
