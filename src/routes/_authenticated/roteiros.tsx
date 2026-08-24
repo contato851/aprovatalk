@@ -85,9 +85,30 @@ function RoteirosPage() {
   const [saving, setSaving] = useState(false);
   const [planningPosts, setPlanningPosts] = useState<PlanningPost[]>([]);
   const [pullId, setPullId] = useState("");
+  const { script: scriptParam } = Route.useSearch();
+  const pendingScriptRef = useRef<string | null>(scriptParam ?? null);
 
   useEffect(() => {
-    if (!clientId && clients.length) setClientId(clients[0].id);
+    if (!scriptParam) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("scripts" as any)
+        .select("id, client_id")
+        .eq("id", scriptParam)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      pendingScriptRef.current = scriptParam;
+      setClientId((data as any).client_id);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [scriptParam]);
+
+  useEffect(() => {
+    if (!clientId && !pendingScriptRef.current && clients.length)
+      setClientId(clients[0].id);
   }, [clients, clientId]);
 
   const loadScripts = useCallback(async (cid: string) => {
@@ -102,8 +123,14 @@ function RoteirosPage() {
     }
     const rows = (data ?? []) as unknown as Script[];
     setScripts(rows);
-    setCurrentId(rows[0]?.id ?? null);
+    const pending = pendingScriptRef.current;
+    pendingScriptRef.current = null;
+    setCurrentId(
+      (pending && rows.some((r) => r.id === pending) ? pending : rows[0]?.id) ??
+        null,
+    );
   }, []);
+
 
   const loadPlanning = useCallback(async (cid: string) => {
     const { data, error } = await supabase
