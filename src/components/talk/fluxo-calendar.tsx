@@ -9,7 +9,9 @@ import {
   startOfMonth,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Check, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, ExternalLink, FileText } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { getDeliverySlotsByToken } from "@/lib/client-portal.functions";
@@ -375,7 +377,7 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                       </a>
                     </div>
                     {!readOnly && (
-                      <div className="min-w-0 sm:col-span-2">
+                      <div className="min-w-0 sm:col-span-2 flex gap-2">
                         <select
                           aria-label="Roteiro vinculado"
                           value={slot.script_id ?? ""}
@@ -400,8 +402,20 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                             </option>
                           ))}
                         </select>
+                        <Link
+                          to="/roteiros"
+                          search={{ script: slot.script_id ?? undefined }}
+
+                          aria-label="Abrir roteiro"
+                          title="Abrir roteiro"
+                          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium hover:bg-accent"
+                        >
+                          <FileText className="h-4 w-4" />
+                          <span className="hidden sm:inline">Roteiro</span>
+                        </Link>
                       </div>
                     )}
+
                   </div>
 
                   <div className="hidden sm:flex flex-col items-end pt-1 min-w-[70px]">
