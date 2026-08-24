@@ -404,9 +404,8 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                         </select>
                         <Link
                           to="/roteiros"
-                          search={
-                            slot.script_id ? { script: slot.script_id } : {}
-                          }
+                          search={{ script: slot.script_id ?? undefined }}
+
                           aria-label="Abrir roteiro"
                           title="Abrir roteiro"
                           className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium hover:bg-accent"
