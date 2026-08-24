@@ -243,7 +243,23 @@ function RoteirosPage() {
       if (error) throw error;
       setScenes(((data ?? []) as unknown as Scene[]).sort((a, b) => a.position - b.position));
       setScripts((p) => p.map((s) => (s.id === current.id ? current : s)));
-      toast.success("Roteiro salvo.");
+
+      if (current.post_id) {
+        const { error: pErr } = await supabase
+          .from("posts")
+          .update({
+            script: composeScript(scenes, current.notes ?? ""),
+            planning_title: current.title,
+          })
+          .eq("id", current.post_id);
+        if (pErr) console.error(pErr);
+        else void loadPlanning(current.client_id);
+      }
+      toast.success(
+        current.post_id
+          ? "Roteiro salvo e atualizado no planejamento."
+          : "Roteiro salvo.",
+      );
     } catch (e) {
       console.error(e);
       toast.error("Erro ao salvar o roteiro.");
