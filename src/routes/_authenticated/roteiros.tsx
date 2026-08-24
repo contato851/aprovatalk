@@ -56,6 +56,21 @@ function emptyScene(position: number): Scene {
   return { position, scene: "", soundtrack: "", lettering: "", notes: "" };
 }
 
+function composeScript(scenes: Scene[], notes: string) {
+  const body = scenes
+    .filter((s) => s.scene || s.soundtrack || s.lettering || s.notes)
+    .map((s, i) => {
+      const lines = [`**Cena ${i + 1}**`];
+      if (s.scene) lines.push(s.scene);
+      if (s.soundtrack) lines.push(`Trilha: ${s.soundtrack}`);
+      if (s.lettering) lines.push(`Lettering: ${s.lettering}`);
+      if (s.notes) lines.push(`Obs: ${s.notes}`);
+      return lines.join("\n");
+    })
+    .join("\n\n");
+  return notes.trim() ? `${body}\n\n**Observações**\n${notes.trim()}` : body;
+}
+
 function RoteirosPage() {
   const clients = useClientOptions();
   const [clientId, setClientId] = useState("");
