@@ -329,7 +329,7 @@ function RoteirosPage() {
           disabled={!clientId}
           className="inline-flex items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
-          <Plus className="h-4 w-4" /> Novo roteiro
+          <Plus className="h-4 w-4" /> Novo
         </button>
       </div>
 
