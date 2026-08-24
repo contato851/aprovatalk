@@ -406,7 +406,37 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                   </div>
 
                   <div className="min-w-0 flex-1 space-y-3">
+                    {!readOnly && (
+                      <Field label="Puxar do planejamento">
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const p = planningPosts.find((x) => x.id === e.target.value);
+                            if (!p) return;
+                            updateSlot(
+                              i,
+                              {
+                                client: p.client_name,
+                                title: p.planning_title,
+                                briefing: p.briefing,
+                                copy: p.script,
+                              },
+                              true,
+                            );
+                          }}
+                          className="h-9 w-full px-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                        >
+                          <option value="">Selecionar conteúdo do planejamento…</option>
+                          {planningPosts.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.client_name} — {p.planning_title || "(sem título)"}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    )}
                     <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
+
                       <Field label="Cliente">
                         <ClientSelect
                           value={slot.client}
