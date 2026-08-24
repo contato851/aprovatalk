@@ -26,9 +26,12 @@ const ROLE_HOME: Record<AppRole, string> = {
   editor: "/fluxo",
 };
 
-function allowedFor(role: AppRole, pathname: string): boolean {
+function allowedFor(role: AppRole, email: string, pathname: string): boolean {
   if (role === "admin") return true;
-  if (pathname.startsWith("/roteiros")) return true;
+  if (pathname.startsWith("/roteiros")) {
+    const e = email.toLowerCase();
+    return e.startsWith("erik@") || e.startsWith("diandra@");
+  }
   if (role === "designer") return pathname.startsWith("/design");
   if (role === "editor") return pathname.startsWith("/fluxo");
   return false;
@@ -55,7 +58,7 @@ export const Route = createFileRoute("/_authenticated")({
         ? "designer"
         : "editor";
 
-    if (!isAdmin && !allowedFor(primary, location.pathname)) {
+    if (!isAdmin && !allowedFor(primary, data.user.email ?? "", location.pathname)) {
       throw redirect({ to: ROLE_HOME[primary] });
     }
 
@@ -74,7 +77,9 @@ function AuthenticatedLayout() {
   const showDesign = isAdmin || primaryRole === "designer";
   const showEdicao = isAdmin || primaryRole === "editor";
   const showRoteiros =
-    isAdmin || (user.email ?? "").toLowerCase().startsWith("erik@");
+    isAdmin ||
+    (user.email ?? "").toLowerCase().startsWith("erik@") ||
+    (user.email ?? "").toLowerCase().startsWith("diandra@");
 
 
   async function handleSignOut() {
