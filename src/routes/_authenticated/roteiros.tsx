@@ -30,6 +30,16 @@ type Script = {
   title: string;
   script_date: string | null;
   notes: string;
+  post_id?: string | null;
+};
+
+type PlanningPost = {
+  id: string;
+  planning_title: string | null;
+  caption: string | null;
+  type: string;
+  scheduled_at: string;
+  script: string | null;
 };
 
 type Scene = {
@@ -46,6 +56,21 @@ function emptyScene(position: number): Scene {
   return { position, scene: "", soundtrack: "", lettering: "", notes: "" };
 }
 
+function composeScript(scenes: Scene[], notes: string) {
+  const body = scenes
+    .filter((s) => s.scene || s.soundtrack || s.lettering || s.notes)
+    .map((s, i) => {
+      const lines = [`**Cena ${i + 1}**`];
+      if (s.scene) lines.push(s.scene);
+      if (s.soundtrack) lines.push(`Trilha: ${s.soundtrack}`);
+      if (s.lettering) lines.push(`Lettering: ${s.lettering}`);
+      if (s.notes) lines.push(`Obs: ${s.notes}`);
+      return lines.join("\n");
+    })
+    .join("\n\n");
+  return notes.trim() ? `${body}\n\n**Observações**\n${notes.trim()}` : body;
+}
+
 function RoteirosPage() {
   const clients = useClientOptions();
   const [clientId, setClientId] = useState("");
@@ -54,6 +79,8 @@ function RoteirosPage() {
   const [current, setCurrent] = useState<Script | null>(null);
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [saving, setSaving] = useState(false);
+  const [planningPosts, setPlanningPosts] = useState<PlanningPost[]>([]);
+  const [pullId, setPullId] = useState("");
 
   useEffect(() => {
     if (!clientId && clients.length) setClientId(clients[0].id);
@@ -74,13 +101,30 @@ function RoteirosPage() {
     setCurrentId(rows[0]?.id ?? null);
   }, []);
 
+  const loadPlanning = useCallback(async (cid: string) => {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("id, planning_title, caption, type, scheduled_at, script")
+      .eq("client_id", cid)
+      .in("status", ["planning", "ready_for_review", "pending"])
+      .order("scheduled_at", { ascending: true });
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setPlanningPosts((data ?? []) as unknown as PlanningPost[]);
+  }, []);
+
   useEffect(() => {
-    if (clientId) void loadScripts(clientId);
-    else {
+    if (clientId) {
+      void loadScripts(clientId);
+      void loadPlanning(clientId);
+    } else {
       setScripts([]);
+      setPlanningPosts([]);
       setCurrentId(null);
     }
-  }, [clientId, loadScripts]);
+  }, [clientId, loadScripts, loadPlanning]);
 
   useEffect(() => {
     let cancelled = false;
@@ -124,6 +168,45 @@ function RoteirosPage() {
     const row = data as unknown as Script;
     setScripts((p) => [row, ...p]);
     setCurrentId(row.id);
+  }
+
+  async function handlePullFromPlanning(postId: string) {
+    const post = planningPosts.find((p) => p.id === postId);
+    if (!post || !clientId) return;
+    const existing = scripts.find((s) => s.post_id === postId);
+    if (existing) {
+      setCurrentId(existing.id);
+      setPullId("");
+      toast.info("Este conteúdo já tem um roteiro — abri para você.");
+      return;
+    }
+    const { data, error } = await supabase
+      .from("scripts" as any)
+      .insert({
+        client_id: clientId,
+        post_id: postId,
+        title: post.planning_title || post.caption || "Roteiro",
+        script_date: post.scheduled_at ? post.scheduled_at.slice(0, 10) : null,
+      })
+      .select("*")
+      .single();
+    if (error) {
+      console.error(error);
+      toast.error("Não foi possível puxar o conteúdo.");
+      return;
+    }
+    const row = data as unknown as Script;
+    if (post.script?.trim()) {
+      await supabase.from("script_scenes" as any).insert({
+        script_id: row.id,
+        position: 0,
+        scene: post.script,
+      });
+    }
+    setScripts((p) => [row, ...p]);
+    setCurrentId(row.id);
+    setPullId("");
+    toast.success("Conteúdo do planejamento carregado.");
   }
 
   async function handleDeleteScript() {
@@ -175,7 +258,23 @@ function RoteirosPage() {
       if (error) throw error;
       setScenes(((data ?? []) as unknown as Scene[]).sort((a, b) => a.position - b.position));
       setScripts((p) => p.map((s) => (s.id === current.id ? current : s)));
-      toast.success("Roteiro salvo.");
+
+      if (current.post_id) {
+        const { error: pErr } = await supabase
+          .from("posts")
+          .update({
+            script: composeScript(scenes, current.notes ?? ""),
+            planning_title: current.title,
+          })
+          .eq("id", current.post_id);
+        if (pErr) console.error(pErr);
+        else void loadPlanning(current.client_id);
+      }
+      toast.success(
+        current.post_id
+          ? "Roteiro salvo e atualizado no planejamento."
+          : "Roteiro salvo.",
+      );
     } catch (e) {
       console.error(e);
       toast.error("Erro ao salvar o roteiro.");
@@ -234,12 +333,39 @@ function RoteirosPage() {
         </button>
       </div>
 
+      <select
+        aria-label="Puxar conteúdo do planejamento"
+        value={pullId}
+        onChange={(e) => {
+          setPullId(e.target.value);
+          if (e.target.value) void handlePullFromPlanning(e.target.value);
+        }}
+        disabled={!clientId}
+        className={inputCls + " sm:max-w-md"}
+      >
+        <option value="">Puxar conteúdo do planejamento…</option>
+        {planningPosts.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.scheduled_at.slice(8, 10)}/{p.scheduled_at.slice(5, 7)} —{" "}
+            {p.planning_title || p.caption || "Sem título"}
+            {scripts.some((s) => s.post_id === p.id) ? " (com roteiro)" : ""}
+          </option>
+        ))}
+      </select>
+
+
       {!current ? (
         <p className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Selecione ou crie um roteiro para começar.
         </p>
       ) : (
         <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+          {current.post_id && (
+            <p className="inline-flex rounded-full bg-brand-purple/10 px-3 py-1 text-[11px] font-semibold text-brand-purple">
+              Vinculado a um conteúdo do planejamento — ao salvar, o roteiro é
+              atualizado lá também.
+            </p>
+          )}
           <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
             <input
               value={current.title}

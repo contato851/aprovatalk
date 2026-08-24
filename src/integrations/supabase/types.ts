@@ -347,6 +347,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string
+          post_id: string | null
           script_date: string | null
           title: string
           updated_at: string
@@ -356,6 +357,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string
+          post_id?: string | null
           script_date?: string | null
           title?: string
           updated_at?: string
@@ -365,6 +367,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string
+          post_id?: string | null
           script_date?: string | null
           title?: string
           updated_at?: string
@@ -375,6 +378,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scripts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
         ]
