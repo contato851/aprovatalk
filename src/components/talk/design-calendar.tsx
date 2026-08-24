@@ -269,6 +269,10 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
     else saveTimers.current[timerKey] = setTimeout(run, 500);
   };
 
+  const toggleExtra = (index: number) => {
+    setExtraOpen((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
+
   const handleUpload = async (index: number, files: FileList | null) => {
     if (!files || files.length === 0 || readOnly) return;
     const uploaded: string[] = [];
