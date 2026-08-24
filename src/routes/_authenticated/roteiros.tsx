@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useClientOptions } from "@/components/talk/client-select";
@@ -6,6 +6,9 @@ import { Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/roteiros")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    script: typeof search.script === "string" ? search.script : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Roteiros — Talk" },
@@ -23,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/roteiros")({
   }),
   component: RoteirosPage,
 });
+
 
 type Script = {
   id: string;
