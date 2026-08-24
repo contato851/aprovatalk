@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { getDeliverySlotsByToken } from "@/lib/client-portal.functions";
 import { cn } from "@/lib/utils";
+import { ClientSelect } from "@/components/talk/client-select";
 
 type Slot = {
   id?: string;
@@ -23,13 +24,24 @@ type Slot = {
   title: string;
   folder_link: string;
   done: boolean;
+  script_id?: string | null;
 };
+
+type ScriptOption = { id: string; title: string; client_name: string };
 
 const SLOTS_PER_DAY = 5;
 const fmtDate = (d: Date) => format(d, "yyyy-MM-dd");
 
 function emptySlot(date: string, index: number): Slot {
-  return { slot_date: date, slot_index: index, client: "", title: "", folder_link: "", done: false };
+  return {
+    slot_date: date,
+    slot_index: index,
+    client: "",
+    title: "",
+    folder_link: "",
+    done: false,
+    script_id: null,
+  };
 }
 
 export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean; token?: string }) {
@@ -39,6 +51,29 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
   const [slotsByDate, setSlotsByDate] = useState<Record<string, Slot[]>>({});
   const [loading, setLoading] = useState(false);
   const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [scripts, setScripts] = useState<ScriptOption[]>([]);
+
+  useEffect(() => {
+    if (readOnly || token) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("scripts" as any)
+        .select("id,title,clients(name)")
+        .order("created_at", { ascending: false });
+      if (cancelled || error) return;
+      setScripts(
+        ((data ?? []) as any[]).map((r) => ({
+          id: r.id as string,
+          title: (r.title as string) || "Sem título",
+          client_name: (r.clients?.name as string) ?? "",
+        })),
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [readOnly, token]);
 
   useEffect(() => {
     const key = fmtDate(selectedDay);
@@ -151,6 +186,7 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
           title: slot.title,
           folder_link: slot.folder_link,
           done: slot.done,
+          script_id: slot.script_id ?? null,
         },
         { onConflict: "slot_date,slot_index" },
       )
@@ -301,12 +337,11 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                   </div>
 
                   <div className="flex-1 grid gap-2 sm:grid-cols-2">
-                    <input
+                    <ClientSelect
                       value={slot.client}
-                      readOnly={readOnly}
-                      onChange={(e) => updateSlot(i, { client: e.target.value })}
-                      placeholder="Cliente"
-                      className="h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
+                      disabled={readOnly}
+                      onChange={(name) => updateSlot(i, { client: name }, true)}
+                      className="w-full"
                     />
                     <input
                       value={slot.title}
@@ -339,6 +374,34 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                         Abrir
                       </a>
                     </div>
+                    {!readOnly && (
+                      <div className="sm:col-span-2">
+                        <select
+                          aria-label="Roteiro vinculado"
+                          value={slot.script_id ?? ""}
+                          onChange={(e) => {
+                            const id = e.target.value;
+                            const sc = scripts.find((x) => x.id === id);
+                            updateSlot(
+                              i,
+                              sc
+                                ? { script_id: id, client: sc.client_name, title: sc.title }
+                                : { script_id: null },
+                              true,
+                            );
+                          }}
+                          className="w-full h-9 px-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                        >
+                          <option value="">Vincular roteiro…</option>
+                          {scripts.map((sc) => (
+                            <option key={sc.id} value={sc.id}>
+                              {sc.client_name ? `${sc.client_name} · ` : ""}
+                              {sc.title}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
 
                   <div className="hidden sm:flex flex-col items-end pt-1 min-w-[70px]">

@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CTokenRouteImport } from './routes/c/$token'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
+import { Route as AuthenticatedRoteirosRouteImport } from './routes/_authenticated/roteiros'
 import { Route as AuthenticatedFluxoRouteImport } from './routes/_authenticated/fluxo'
 import { Route as AuthenticatedDesignRouteImport } from './routes/_authenticated/design'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -47,6 +48,11 @@ const CTokenRoute = CTokenRouteImport.update({
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRoteirosRoute = AuthenticatedRoteirosRouteImport.update({
+  id: '/roteiros',
+  path: '/roteiros',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFluxoRoute = AuthenticatedFluxoRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
+  '/roteiros': typeof AuthenticatedRoteirosRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/design': typeof AuthenticatedDesignRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
+  '/roteiros': typeof AuthenticatedRoteirosRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/design': typeof AuthenticatedDesignRoute
   '/_authenticated/fluxo': typeof AuthenticatedFluxoRoute
+  '/_authenticated/roteiros': typeof AuthenticatedRoteirosRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/c/$token': typeof CTokenRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/design'
     | '/fluxo'
+    | '/roteiros'
     | '/tasks'
     | '/c/$token'
     | '/clients/'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/design'
     | '/fluxo'
+    | '/roteiros'
     | '/tasks'
     | '/c/$token'
     | '/clients'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/design'
     | '/_authenticated/fluxo'
+    | '/_authenticated/roteiros'
     | '/_authenticated/tasks'
     | '/c/$token'
     | '/_authenticated/clients/'
@@ -250,6 +262,13 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof AuthenticatedTasksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/roteiros': {
+      id: '/_authenticated/roteiros'
+      path: '/roteiros'
+      fullPath: '/roteiros'
+      preLoaderRoute: typeof AuthenticatedRoteirosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/fluxo': {
@@ -345,6 +364,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedDesignRoute: typeof AuthenticatedDesignRoute
   AuthenticatedFluxoRoute: typeof AuthenticatedFluxoRoute
+  AuthenticatedRoteirosRoute: typeof AuthenticatedRoteirosRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedClientsClientIdNewRoute: typeof AuthenticatedClientsClientIdNewRoute
@@ -356,6 +376,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedDesignRoute: AuthenticatedDesignRoute,
   AuthenticatedFluxoRoute: AuthenticatedFluxoRoute,
+  AuthenticatedRoteirosRoute: AuthenticatedRoteirosRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedClientsClientIdNewRoute: AuthenticatedClientsClientIdNewRoute,
@@ -377,3 +398,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

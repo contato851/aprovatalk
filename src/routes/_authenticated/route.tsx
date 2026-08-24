@@ -28,6 +28,7 @@ const ROLE_HOME: Record<AppRole, string> = {
 
 function allowedFor(role: AppRole, pathname: string): boolean {
   if (role === "admin") return true;
+  if (pathname.startsWith("/roteiros")) return true;
   if (role === "designer") return pathname.startsWith("/design");
   if (role === "editor") return pathname.startsWith("/fluxo");
   return false;
@@ -97,6 +98,7 @@ function AuthenticatedLayout() {
       : []),
     ...(showEdicao ? [{ to: "/fluxo", label: "Edição" }] : []),
     ...(showDesign ? [{ to: "/design", label: "Design" }] : []),
+    { to: "/roteiros", label: "Roteiros" },
   ];
 
   const displayName = (() => {

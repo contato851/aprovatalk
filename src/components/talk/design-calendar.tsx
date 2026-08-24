@@ -15,6 +15,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getDesignSlotsByToken } from "@/lib/client-portal.functions";
 import { cn } from "@/lib/utils";
 import { RichTextArea } from "@/components/talk/rich-textarea";
+import { ClientSelect } from "@/components/talk/client-select";
 
 type Slot = {
   id?: string;
@@ -402,12 +403,11 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                   <div className="flex-1 space-y-3">
                     <div className="grid gap-2 sm:grid-cols-2">
                       <Field label="Cliente">
-                        <input
+                        <ClientSelect
                           value={slot.client}
-                          readOnly={readOnly}
-                          onChange={(e) => updateSlot(i, { client: e.target.value })}
-                          placeholder="Cliente"
-                          className="h-9 w-full px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
+                          disabled={readOnly}
+                          onChange={(name) => updateSlot(i, { client: name }, true)}
+                          className="w-full"
                         />
                       </Field>
                       <Field label="Título do material">
