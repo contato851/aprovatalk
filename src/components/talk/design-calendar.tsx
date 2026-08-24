@@ -60,6 +60,9 @@ function emptySlot(date: string, index: number): Slot {
 
 export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean; token?: string }) {
   const fetchByToken = useServerFn(getDesignSlotsByToken);
+  const email = useUserEmail();
+  const canPull = !readOnly && isPlanningEditor(email);
+  const textLocked = readOnly || !canEditContentText(email);
   const [cursor, setCursor] = useState<Date>(() => new Date());
   const [selectedDay, setSelectedDay] = useState<Date>(() => new Date());
   const [slotsByDate, setSlotsByDate] = useState<Record<string, Slot[]>>({});
