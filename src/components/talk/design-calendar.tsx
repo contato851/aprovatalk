@@ -488,79 +488,100 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                     </Field>
 
 
-                    <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
-                      <Field label="Briefing">
-                        <RichTextArea
-                          rows={8}
-                          value={slot.briefing}
-                          readOnly={readOnly}
-                          onChange={(v) => updateSlot(i, { briefing: v })}
-                          placeholder="Objetivo, público, tom…"
-                        />
-                      </Field>
-                      <Field label="Copy">
-                        <RichTextArea
-                          rows={8}
-                          value={slot.copy}
-                          readOnly={readOnly}
-                          onChange={(v) => updateSlot(i, { copy: v })}
-                          placeholder="Texto que vai na peça…"
-                        />
-                      </Field>
+                    <div className="md:hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleExtra(i)}
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed py-2 text-xs font-medium text-muted-foreground hover:bg-muted/50 transition"
+                        aria-expanded={extraOpen[i]}
+                      >
+                        {extraOpen[i] ? (
+                          <>
+                            <ChevronUp className="h-4 w-4" /> Ocultar briefing, copy e referências
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-4 w-4" /> Ver briefing, copy e referências
+                          </>
+                        )}
+                      </button>
                     </div>
 
-                    <Field label="Referências">
-                      <div className="rounded-lg border bg-background p-3">
-                        <div className="flex flex-wrap gap-3">
-                          {slot.references_images.map((path) => {
-                            const url = signedUrls[path];
-                            return (
-                              <div
-                                key={path}
-                                className="relative group h-24 w-24 rounded-md overflow-hidden border bg-muted"
-                              >
-                                {url ? (
-                                  <a href={url} target="_blank" rel="noopener noreferrer">
-                                    <img src={url} alt="Referência" className="h-full w-full object-cover" />
-                                  </a>
-                                ) : (
-                                  <div className="h-full w-full animate-pulse bg-muted" />
-                                )}
-                                {!readOnly && (
-                                  <button
-                                    type="button"
-                                    onClick={() => removeReference(i, path)}
-                                    className="absolute top-1 right-1 h-5 w-5 grid place-items-center rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 transition"
-                                    aria-label="Remover imagem"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          })}
-                          {!readOnly && (
-                            <label className="h-24 w-24 rounded-md border-2 border-dashed border-input flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground cursor-pointer hover:border-foreground hover:text-foreground transition">
-                              <Upload className="h-4 w-4" />
-                              Enviar
-                              <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                className="hidden"
-                                onChange={(e) => {
-                                  handleUpload(i, e.target.files);
-                                  e.target.value = "";
-                                }}
-                              />
-                            </label>
-                          )}
-                          {readOnly && slot.references_images.length === 0 && (
-                            <p className="text-xs text-muted-foreground">Sem referências.</p>
-                          )}
-                        </div>
+                    <div className={cn("space-y-3", extraOpen[i] ? "block" : "hidden", "md:block")}>
+                      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
+                        <Field label="Briefing">
+                          <RichTextArea
+                            rows={8}
+                            value={slot.briefing}
+                            readOnly={readOnly}
+                            onChange={(v) => updateSlot(i, { briefing: v })}
+                            placeholder="Objetivo, público, tom…"
+                          />
+                        </Field>
+                        <Field label="Copy">
+                          <RichTextArea
+                            rows={8}
+                            value={slot.copy}
+                            readOnly={readOnly}
+                            onChange={(v) => updateSlot(i, { copy: v })}
+                            placeholder="Texto que vai na peça…"
+                          />
+                        </Field>
                       </div>
-                    </Field>
+
+                      <Field label="Referências">
+                        <div className="rounded-lg border bg-background p-3">
+                          <div className="flex flex-wrap gap-3">
+                            {slot.references_images.map((path) => {
+                              const url = signedUrls[path];
+                              return (
+                                <div
+                                  key={path}
+                                  className="relative group h-24 w-24 rounded-md overflow-hidden border bg-muted"
+                                >
+                                  {url ? (
+                                    <a href={url} target="_blank" rel="noopener noreferrer">
+                                      <img src={url} alt="Referência" className="h-full w-full object-cover" />
+                                    </a>
+                                  ) : (
+                                    <div className="h-full w-full animate-pulse bg-muted" />
+                                  )}
+                                  {!readOnly && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeReference(i, path)}
+                                      className="absolute top-1 right-1 h-5 w-5 grid place-items-center rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 transition"
+                                      aria-label="Remover imagem"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                            {!readOnly && (
+                              <label className="h-24 w-24 rounded-md border-2 border-dashed border-input flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground cursor-pointer hover:border-foreground hover:text-foreground transition">
+                                <Upload className="h-4 w-4" />
+                                Enviar
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    handleUpload(i, e.target.files);
+                                    e.target.value = "";
+                                  }}
+                                />
+                              </label>
+                            )}
+                            {readOnly && slot.references_images.length === 0 && (
+                              <p className="text-xs text-muted-foreground">Sem referências.</p>
+                            )}
+                          </div>
+                        </div>
+                      </Field>
+                    </div>
                   </div>
                 </div>
               </div>
