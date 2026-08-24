@@ -76,6 +76,7 @@ function composeScript(scenes: Scene[], notes: string) {
 }
 
 function RoteirosPage() {
+  const canPull = isPlanningEditor(useUserEmail());
   const clients = useClientOptions();
   const [clientId, setClientId] = useState("");
   const [scripts, setScripts] = useState<Script[]>([]);
