@@ -155,6 +155,45 @@ function RoteirosPage() {
     setCurrentId(row.id);
   }
 
+  async function handlePullFromPlanning(postId: string) {
+    const post = planningPosts.find((p) => p.id === postId);
+    if (!post || !clientId) return;
+    const existing = scripts.find((s) => s.post_id === postId);
+    if (existing) {
+      setCurrentId(existing.id);
+      setPullId("");
+      toast.info("Este conteúdo já tem um roteiro — abri para você.");
+      return;
+    }
+    const { data, error } = await supabase
+      .from("scripts" as any)
+      .insert({
+        client_id: clientId,
+        post_id: postId,
+        title: post.planning_title || post.caption || "Roteiro",
+        script_date: post.scheduled_at ? post.scheduled_at.slice(0, 10) : null,
+      })
+      .select("*")
+      .single();
+    if (error) {
+      console.error(error);
+      toast.error("Não foi possível puxar o conteúdo.");
+      return;
+    }
+    const row = data as unknown as Script;
+    if (post.script?.trim()) {
+      await supabase.from("script_scenes" as any).insert({
+        script_id: row.id,
+        position: 0,
+        scene: post.script,
+      });
+    }
+    setScripts((p) => [row, ...p]);
+    setCurrentId(row.id);
+    setPullId("");
+    toast.success("Conteúdo do planejamento carregado.");
+  }
+
   async function handleDeleteScript() {
     if (!current) return;
     if (!confirm("Excluir este roteiro?")) return;
