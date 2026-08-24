@@ -54,6 +54,7 @@ export type Database = {
           done: boolean
           folder_link: string
           id: string
+          script_id: string | null
           slot_date: string
           slot_index: number
           title: string
@@ -65,6 +66,7 @@ export type Database = {
           done?: boolean
           folder_link?: string
           id?: string
+          script_id?: string | null
           slot_date: string
           slot_index: number
           title?: string
@@ -76,12 +78,21 @@ export type Database = {
           done?: boolean
           folder_link?: string
           id?: string
+          script_id?: string | null
           slot_date?: string
           slot_index?: number
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "delivery_slots_script_id_fkey"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "scripts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       design_slots: {
         Row: {
@@ -282,6 +293,88 @@ export type Database = {
             columns: ["linked_design_slot_id"]
             isOneToOne: false
             referencedRelation: "design_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      script_scenes: {
+        Row: {
+          created_at: string
+          id: string
+          lettering: string
+          notes: string
+          position: number
+          scene: string
+          script_id: string
+          soundtrack: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lettering?: string
+          notes?: string
+          position?: number
+          scene?: string
+          script_id: string
+          soundtrack?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lettering?: string
+          notes?: string
+          position?: number
+          scene?: string
+          script_id?: string
+          soundtrack?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_scenes_script_id_fkey"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "scripts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scripts: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          notes: string
+          script_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          notes?: string
+          script_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          notes?: string
+          script_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scripts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
