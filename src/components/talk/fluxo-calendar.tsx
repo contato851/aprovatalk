@@ -1,3 +1,4 @@
+import { useUserEmail, isPlanningEditor, canViewScripts } from "@/lib/permissions";
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import {
   addBusinessDays,
