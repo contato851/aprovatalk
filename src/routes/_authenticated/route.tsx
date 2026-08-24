@@ -73,6 +73,9 @@ function AuthenticatedLayout() {
   const isAdmin = primaryRole === "admin";
   const showDesign = isAdmin || primaryRole === "designer";
   const showEdicao = isAdmin || primaryRole === "editor";
+  const showRoteiros =
+    isAdmin || (user.email ?? "").toLowerCase().startsWith("erik@");
+
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
