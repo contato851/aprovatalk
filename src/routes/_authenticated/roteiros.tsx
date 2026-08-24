@@ -30,6 +30,16 @@ type Script = {
   title: string;
   script_date: string | null;
   notes: string;
+  post_id?: string | null;
+};
+
+type PlanningPost = {
+  id: string;
+  planning_title: string | null;
+  caption: string | null;
+  type: string;
+  scheduled_at: string;
+  script: string | null;
 };
 
 type Scene = {
