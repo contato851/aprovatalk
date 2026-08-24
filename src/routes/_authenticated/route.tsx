@@ -101,7 +101,7 @@ function AuthenticatedLayout() {
       : []),
     ...(showEdicao ? [{ to: "/fluxo", label: "Edição" }] : []),
     ...(showDesign ? [{ to: "/design", label: "Design" }] : []),
-    { to: "/roteiros", label: "Roteiros" },
+    ...(showRoteiros ? [{ to: "/roteiros", label: "Roteiros" }] : []),
   ];
 
   const displayName = (() => {
