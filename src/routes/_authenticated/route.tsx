@@ -58,7 +58,7 @@ export const Route = createFileRoute("/_authenticated")({
         ? "designer"
         : "editor";
 
-    if (!isAdmin && !allowedFor(primary, location.pathname)) {
+    if (!isAdmin && !allowedFor(primary, data.user.email ?? "", location.pathname)) {
       throw redirect({ to: ROLE_HOME[primary] });
     }
 
