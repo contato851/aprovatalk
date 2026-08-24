@@ -582,7 +582,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
         {label}
       </span>
