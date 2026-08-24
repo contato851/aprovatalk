@@ -26,9 +26,12 @@ const ROLE_HOME: Record<AppRole, string> = {
   editor: "/fluxo",
 };
 
-function allowedFor(role: AppRole, pathname: string): boolean {
+function allowedFor(role: AppRole, email: string, pathname: string): boolean {
   if (role === "admin") return true;
-  if (pathname.startsWith("/roteiros")) return true;
+  if (pathname.startsWith("/roteiros")) {
+    const e = email.toLowerCase();
+    return e.startsWith("erik@") || e.startsWith("diandra@");
+  }
   if (role === "designer") return pathname.startsWith("/design");
   if (role === "editor") return pathname.startsWith("/fluxo");
   return false;
