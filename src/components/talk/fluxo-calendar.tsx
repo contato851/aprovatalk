@@ -9,7 +9,9 @@ import {
   startOfMonth,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Check, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, ExternalLink, FileText } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { getDeliverySlotsByToken } from "@/lib/client-portal.functions";
