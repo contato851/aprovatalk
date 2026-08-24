@@ -84,13 +84,30 @@ function RoteirosPage() {
     setCurrentId(rows[0]?.id ?? null);
   }, []);
 
+  const loadPlanning = useCallback(async (cid: string) => {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("id, planning_title, caption, type, scheduled_at, script")
+      .eq("client_id", cid)
+      .in("status", ["planning", "ready_for_review", "pending"])
+      .order("scheduled_at", { ascending: true });
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setPlanningPosts((data ?? []) as unknown as PlanningPost[]);
+  }, []);
+
   useEffect(() => {
-    if (clientId) void loadScripts(clientId);
-    else {
+    if (clientId) {
+      void loadScripts(clientId);
+      void loadPlanning(clientId);
+    } else {
       setScripts([]);
+      setPlanningPosts([]);
       setCurrentId(null);
     }
-  }, [clientId, loadScripts]);
+  }, [clientId, loadScripts, loadPlanning]);
 
   useEffect(() => {
     let cancelled = false;
