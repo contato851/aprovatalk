@@ -375,7 +375,7 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                       </a>
                     </div>
                     {!readOnly && (
-                      <div className="min-w-0 sm:col-span-2">
+                      <div className="min-w-0 sm:col-span-2 flex gap-2">
                         <select
                           aria-label="Roteiro vinculado"
                           value={slot.script_id ?? ""}
@@ -400,8 +400,21 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                             </option>
                           ))}
                         </select>
+                        <Link
+                          to="/roteiros"
+                          search={
+                            slot.script_id ? { script: slot.script_id } : {}
+                          }
+                          aria-label="Abrir roteiro"
+                          title="Abrir roteiro"
+                          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium hover:bg-accent"
+                        >
+                          <FileText className="h-4 w-4" />
+                          <span className="hidden sm:inline">Roteiro</span>
+                        </Link>
                       </div>
                     )}
+
                   </div>
 
                   <div className="hidden sm:flex flex-col items-end pt-1 min-w-[70px]">
