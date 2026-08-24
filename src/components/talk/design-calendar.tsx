@@ -31,6 +31,14 @@ type Slot = {
   done: boolean;
 };
 
+type PlanningOption = {
+  id: string;
+  planning_title: string;
+  briefing: string;
+  script: string;
+  client_name: string;
+};
+
 const SLOTS_PER_DAY = 5;
 const REFERENCES_BUCKET = "design-references";
 const fmtDate = (d: Date) => format(d, "yyyy-MM-dd");
@@ -58,6 +66,32 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
   const [loading, setLoading] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [extraOpen, setExtraOpen] = useState<Record<number, boolean>>({});
+  const [planningPosts, setPlanningPosts] = useState<PlanningOption[]>([]);
+
+  useEffect(() => {
+    if (readOnly) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("id,planning_title,briefing,script,scheduled_at,clients(name)")
+        .order("scheduled_at", { ascending: true });
+      if (cancelled || error || !data) return;
+      setPlanningPosts(
+        (data as any[]).map((r) => ({
+          id: r.id as string,
+          planning_title: (r.planning_title as string) ?? "",
+          briefing: (r.briefing as string) ?? "",
+          script: (r.script as string) ?? "",
+          client_name: (r.clients?.name as string) ?? "",
+        })),
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [readOnly]);
+
   const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
@@ -406,7 +440,37 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                   </div>
 
                   <div className="min-w-0 flex-1 space-y-3">
+                    {!readOnly && (
+                      <Field label="Puxar do planejamento">
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const p = planningPosts.find((x) => x.id === e.target.value);
+                            if (!p) return;
+                            updateSlot(
+                              i,
+                              {
+                                client: p.client_name,
+                                title: p.planning_title,
+                                briefing: p.briefing,
+                                copy: p.script,
+                              },
+                              true,
+                            );
+                          }}
+                          className="h-9 w-full px-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                        >
+                          <option value="">Selecionar conteúdo do planejamento…</option>
+                          {planningPosts.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.client_name} — {p.planning_title || "(sem título)"}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    )}
                     <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
+
                       <Field label="Cliente">
                         <ClientSelect
                           value={slot.client}
