@@ -400,8 +400,8 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                     </button>
                   </div>
 
-                  <div className="flex-1 space-y-3">
-                    <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
                       <Field label="Cliente">
                         <ClientSelect
                           value={slot.client}
@@ -421,15 +421,15 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                       </Field>
                     </div>
 
-                    <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                    <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
                       <Field label="Link do material bruto">
-                        <div className="flex gap-2">
+                        <div className="flex min-w-0 gap-2">
                           <input
                             value={slot.folder_link}
                             readOnly={readOnly}
                             onChange={(e) => updateSlot(i, { folder_link: e.target.value })}
                             placeholder="https://..."
-                            className="flex-1 h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
+                            className="h-9 min-w-0 flex-1 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
                           />
                           <a
                             href={slot.folder_link || undefined}
@@ -437,14 +437,14 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                             rel="noopener noreferrer"
                             onClick={(e) => { if (!slot.folder_link) e.preventDefault(); }}
                             className={cn(
-                              "h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border text-sm font-medium transition",
+                              "h-9 shrink-0 px-3 inline-flex items-center gap-1.5 rounded-lg border text-sm font-medium transition",
                               slot.folder_link
                                 ? "bg-foreground text-background border-foreground hover:opacity-90"
                                 : "bg-muted text-muted-foreground border-transparent cursor-not-allowed",
                             )}
                           >
                             <ExternalLink className="h-4 w-4" />
-                            Abrir
+                            <span className="hidden sm:inline">Abrir</span>
                           </a>
                         </div>
                       </Field>
@@ -456,13 +456,13 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                     </div>
 
                     <Field label="Link do material finalizado">
-                      <div className="flex gap-2">
+                      <div className="flex min-w-0 gap-2">
                         <input
                           value={slot.final_link}
                           readOnly={readOnly}
                           onChange={(e) => updateSlot(i, { final_link: e.target.value })}
                           placeholder="https://..."
-                          className="flex-1 h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
+                          className="h-9 min-w-0 flex-1 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
                         />
                         <a
                           href={slot.final_link || undefined}
@@ -470,20 +470,20 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                           rel="noopener noreferrer"
                           onClick={(e) => { if (!slot.final_link) e.preventDefault(); }}
                           className={cn(
-                            "h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border text-sm font-medium transition",
+                            "h-9 shrink-0 px-3 inline-flex items-center gap-1.5 rounded-lg border text-sm font-medium transition",
                             slot.final_link
                               ? "bg-foreground text-background border-foreground hover:opacity-90"
                               : "bg-muted text-muted-foreground border-transparent cursor-not-allowed",
                           )}
                         >
                           <ExternalLink className="h-4 w-4" />
-                          Abrir
+                          <span className="hidden sm:inline">Abrir</span>
                         </a>
                       </div>
                     </Field>
 
 
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
                       <Field label="Briefing">
                         <RichTextArea
                           rows={8}
@@ -582,7 +582,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="block text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5 font-semibold">
         {label}
       </span>

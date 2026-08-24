@@ -336,7 +336,7 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                     </button>
                   </div>
 
-                  <div className="flex-1 grid gap-2 sm:grid-cols-2">
+                  <div className="min-w-0 flex-1 grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <ClientSelect
                       value={slot.client}
                       disabled={readOnly}
@@ -348,15 +348,15 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                       readOnly={readOnly}
                       onChange={(e) => updateSlot(i, { title: e.target.value })}
                       placeholder="Título / descrição"
-                      className="h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
+                      className="h-9 w-full min-w-0 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
                     />
-                    <div className="sm:col-span-2 flex gap-2">
+                    <div className="flex min-w-0 gap-2 sm:col-span-2">
                       <input
                         value={slot.folder_link}
                         readOnly={readOnly}
                         onChange={(e) => updateSlot(i, { folder_link: e.target.value })}
                         placeholder="Link da pasta"
-                        className="flex-1 h-9 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
+                        className="h-9 min-w-0 flex-1 px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
                       />
                       <a
                         href={slot.folder_link || undefined}
@@ -364,18 +364,18 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
                         rel="noopener noreferrer"
                         onClick={(e) => { if (!slot.folder_link) e.preventDefault(); }}
                         className={cn(
-                          "h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border text-sm font-medium transition",
+                          "h-9 shrink-0 px-3 inline-flex items-center gap-1.5 rounded-lg border text-sm font-medium transition",
                           slot.folder_link
                             ? "bg-foreground text-background border-foreground hover:opacity-90"
                             : "bg-muted text-muted-foreground border-transparent cursor-not-allowed",
                         )}
                       >
                         <ExternalLink className="h-4 w-4" />
-                        Abrir
+                        <span className="hidden sm:inline">Abrir</span>
                       </a>
                     </div>
                     {!readOnly && (
-                      <div className="sm:col-span-2">
+                      <div className="min-w-0 sm:col-span-2">
                         <select
                           aria-label="Roteiro vinculado"
                           value={slot.script_id ?? ""}
