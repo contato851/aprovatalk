@@ -31,6 +31,14 @@ type Slot = {
   done: boolean;
 };
 
+type PlanningOption = {
+  id: string;
+  planning_title: string;
+  briefing: string;
+  script: string;
+  client_name: string;
+};
+
 const SLOTS_PER_DAY = 5;
 const REFERENCES_BUCKET = "design-references";
 const fmtDate = (d: Date) => format(d, "yyyy-MM-dd");
