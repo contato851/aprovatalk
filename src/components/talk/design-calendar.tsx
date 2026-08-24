@@ -57,6 +57,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
   const [slotsByDate, setSlotsByDate] = useState<Record<string, Slot[]>>({});
   const [loading, setLoading] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+  const [extraOpen, setExtraOpen] = useState<Record<number, boolean>>({});
   const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
