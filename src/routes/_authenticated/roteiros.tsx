@@ -360,6 +360,12 @@ function RoteirosPage() {
         </p>
       ) : (
         <div className="space-y-4 rounded-2xl border border-border bg-card p-4">
+          {current.post_id && (
+            <p className="inline-flex rounded-full bg-brand-purple/10 px-3 py-1 text-[11px] font-semibold text-brand-purple">
+              Vinculado a um conteúdo do planejamento — ao salvar, o roteiro é
+              atualizado lá também.
+            </p>
+          )}
           <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
             <input
               value={current.title}
