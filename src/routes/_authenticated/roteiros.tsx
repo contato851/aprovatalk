@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useClientOptions } from "@/components/talk/client-select";
 import { Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { isPlanningEditor, useUserEmail } from "@/lib/permissions";
 
 export const Route = createFileRoute("/_authenticated/roteiros")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -76,6 +77,7 @@ function composeScript(scenes: Scene[], notes: string) {
 }
 
 function RoteirosPage() {
+  const canPull = isPlanningEditor(useUserEmail());
   const clients = useClientOptions();
   const [clientId, setClientId] = useState("");
   const [scripts, setScripts] = useState<Script[]>([]);
@@ -364,6 +366,7 @@ function RoteirosPage() {
         </button>
       </div>
 
+      {canPull && (
       <select
         aria-label="Puxar conteúdo do planejamento"
         value={pullId}
@@ -383,6 +386,8 @@ function RoteirosPage() {
           </option>
         ))}
       </select>
+      )}
+
 
 
       {!current ? (
