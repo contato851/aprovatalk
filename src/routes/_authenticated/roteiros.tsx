@@ -364,6 +364,7 @@ function RoteirosPage() {
         </button>
       </div>
 
+      {canPull && (
       <select
         aria-label="Puxar conteúdo do planejamento"
         value={pullId}
@@ -383,6 +384,8 @@ function RoteirosPage() {
           </option>
         ))}
       </select>
+      )}
+
 
 
       {!current ? (
