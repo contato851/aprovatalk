@@ -333,6 +333,27 @@ function RoteirosPage() {
         </button>
       </div>
 
+      <select
+        aria-label="Puxar conteúdo do planejamento"
+        value={pullId}
+        onChange={(e) => {
+          setPullId(e.target.value);
+          if (e.target.value) void handlePullFromPlanning(e.target.value);
+        }}
+        disabled={!clientId}
+        className={inputCls + " sm:max-w-md"}
+      >
+        <option value="">Puxar conteúdo do planejamento…</option>
+        {planningPosts.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.scheduled_at.slice(8, 10)}/{p.scheduled_at.slice(5, 7)} —{" "}
+            {p.planning_title || p.caption || "Sem título"}
+            {scripts.some((s) => s.post_id === p.id) ? " (com roteiro)" : ""}
+          </option>
+        ))}
+      </select>
+
+
       {!current ? (
         <p className="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Selecione ou crie um roteiro para começar.
