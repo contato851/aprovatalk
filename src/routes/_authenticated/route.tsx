@@ -77,7 +77,9 @@ function AuthenticatedLayout() {
   const showDesign = isAdmin || primaryRole === "designer";
   const showEdicao = isAdmin || primaryRole === "editor";
   const showRoteiros =
-    isAdmin || (user.email ?? "").toLowerCase().startsWith("erik@");
+    isAdmin ||
+    (user.email ?? "").toLowerCase().startsWith("erik@") ||
+    (user.email ?? "").toLowerCase().startsWith("diandra@");
 
 
   async function handleSignOut() {
