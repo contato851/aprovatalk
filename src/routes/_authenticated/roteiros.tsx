@@ -64,6 +64,8 @@ function RoteirosPage() {
   const [current, setCurrent] = useState<Script | null>(null);
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [saving, setSaving] = useState(false);
+  const [planningPosts, setPlanningPosts] = useState<PlanningPost[]>([]);
+  const [pullId, setPullId] = useState("");
 
   useEffect(() => {
     if (!clientId && clients.length) setClientId(clients[0].id);
