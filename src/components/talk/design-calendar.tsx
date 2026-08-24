@@ -308,7 +308,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
   };
 
   const handleUpload = async (index: number, files: FileList | null) => {
-    if (!files || files.length === 0 || readOnly) return;
+    if (!files || files.length === 0 || textLocked) return;
     const uploaded: string[] = [];
     for (const file of Array.from(files)) {
       if (!file.type.startsWith("image/")) continue;
@@ -329,7 +329,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
   };
 
   const removeReference = async (index: number, path: string) => {
-    if (readOnly) return;
+    if (textLocked) return;
     await supabase.storage.from(REFERENCES_BUCKET).remove([path]);
     const current = slotsByDate[selectedKey]?.[index]?.references_images ?? [];
     updateSlot(index, { references_images: current.filter((p) => p !== path) }, true);
@@ -440,7 +440,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                   </div>
 
                   <div className="min-w-0 flex-1 space-y-3">
-                    {!readOnly && (
+                    {canPull && (
                       <Field label="Puxar do planejamento">
                         <select
                           value=""
@@ -474,7 +474,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                       <Field label="Cliente">
                         <ClientSelect
                           value={slot.client}
-                          disabled={readOnly}
+                          disabled={textLocked}
                           onChange={(name) => updateSlot(i, { client: name }, true)}
                           className="w-full"
                         />
@@ -482,7 +482,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                       <Field label="Título do material">
                         <input
                           value={slot.title}
-                          readOnly={readOnly}
+                          readOnly={textLocked}
                           onChange={(e) => updateSlot(i, { title: e.target.value })}
                           placeholder="Título / descrição"
                           className="h-9 w-full px-3 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 read-only:bg-muted/40"
@@ -577,7 +577,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                           <RichTextArea
                             rows={8}
                             value={slot.briefing}
-                            readOnly={readOnly}
+                            readOnly={textLocked}
                             onChange={(v) => updateSlot(i, { briefing: v })}
                             placeholder="Objetivo, público, tom…"
                           />
@@ -586,7 +586,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                           <RichTextArea
                             rows={8}
                             value={slot.copy}
-                            readOnly={readOnly}
+                            readOnly={textLocked}
                             onChange={(v) => updateSlot(i, { copy: v })}
                             placeholder="Texto que vai na peça…"
                           />
@@ -610,7 +610,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                                   ) : (
                                     <div className="h-full w-full animate-pulse bg-muted" />
                                   )}
-                                  {!readOnly && (
+                                  {!textLocked && (
                                     <button
                                       type="button"
                                       onClick={() => removeReference(i, path)}
@@ -623,7 +623,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                                 </div>
                               );
                             })}
-                            {!readOnly && (
+                            {!textLocked && (
                               <label className="h-24 w-24 rounded-md border-2 border-dashed border-input flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground cursor-pointer hover:border-foreground hover:text-foreground transition">
                                 <Upload className="h-4 w-4" />
                                 Enviar
@@ -639,7 +639,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                                 />
                               </label>
                             )}
-                            {readOnly && slot.references_images.length === 0 && (
+                            {textLocked && slot.references_images.length === 0 && (
                               <p className="text-xs text-muted-foreground">Sem referências.</p>
                             )}
                           </div>
