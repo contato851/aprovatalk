@@ -58,6 +58,32 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
   const [loading, setLoading] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [extraOpen, setExtraOpen] = useState<Record<number, boolean>>({});
+  const [planningPosts, setPlanningPosts] = useState<PlanningOption[]>([]);
+
+  useEffect(() => {
+    if (readOnly) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("id,planning_title,briefing,script,scheduled_at,clients(name)")
+        .order("scheduled_at", { ascending: true });
+      if (cancelled || error || !data) return;
+      setPlanningPosts(
+        (data as any[]).map((r) => ({
+          id: r.id as string,
+          planning_title: (r.planning_title as string) ?? "",
+          briefing: (r.briefing as string) ?? "",
+          script: (r.script as string) ?? "",
+          client_name: (r.clients?.name as string) ?? "",
+        })),
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [readOnly]);
+
   const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
