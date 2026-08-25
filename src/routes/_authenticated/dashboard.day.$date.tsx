@@ -39,7 +39,7 @@ function DayPage() {
   });
   const clientsQ = useQuery({
     queryKey: ["clients"],
-    queryFn: () => listClientsFn({ data: {} } as any),
+    queryFn: () => listClientsFn({ data: { includeAvatars: false } }),
   });
 
   const clients = (clientsQ.data ?? []) as any[];

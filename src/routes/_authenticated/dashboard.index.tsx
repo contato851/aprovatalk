@@ -44,7 +44,7 @@ function DashboardPage() {
 
   const clientsQ = useQuery({
     queryKey: ["clients"],
-    queryFn: () => listClientsFn({ data: undefined as any }),
+    queryFn: () => listClientsFn({ data: { includeAvatars: false } }),
   });
 
   const postsQ = useQuery({
