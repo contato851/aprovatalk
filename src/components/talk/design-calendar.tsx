@@ -35,8 +35,6 @@ type Slot = {
 type PlanningOption = {
   id: string;
   planning_title: string;
-  briefing: string;
-  script: string;
   client_name: string;
   scheduled_at: string;
 };
@@ -72,23 +70,26 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [extraOpen, setExtraOpen] = useState<Record<number, boolean>>({});
   const [planningPosts, setPlanningPosts] = useState<PlanningOption[]>([]);
+  const [pullingBySlot, setPullingBySlot] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
-    if (readOnly) return;
+    if (!canPull) return;
     let cancelled = false;
     (async () => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id,planning_title,caption,briefing,script,scheduled_at,status,clients(name)")
+        .select("id,planning_title,caption,scheduled_at,status,clients(name)")
         .in("status", ["planning", "ready_for_review", "pending"])
-        .order("scheduled_at", { ascending: true });
+        .order("scheduled_at", { ascending: true })
+        .limit(250);
       if (cancelled || error || !data) return;
       setPlanningPosts(
         (data as any[]).map((r) => ({
           id: r.id as string,
-          planning_title: ((r.planning_title as string) || (r.caption as string) || "").trim(),
-          briefing: (r.briefing as string) ?? "",
-          script: (r.script as string) ?? "",
+          planning_title: ((r.planning_title as string) || (r.caption as string) || "")
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 90),
           client_name: (r.clients?.name as string) ?? "",
           scheduled_at: (r.scheduled_at as string) ?? "",
         })),
@@ -97,7 +98,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
     return () => {
       cancelled = true;
     };
-  }, [readOnly]);
+  }, [canPull]);
 
 
   const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -336,6 +337,33 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
     updateSlot(index, { references_images: [...current, ...uploaded] }, true);
   };
 
+  const pullFromPlanning = async (index: number, postId: string) => {
+    if (!postId) return;
+    const option = planningPosts.find((p) => p.id === postId);
+    setPullingBySlot((prev) => ({ ...prev, [index]: true }));
+    const { data, error } = await supabase
+      .from("posts")
+      .select("id,planning_title,caption,briefing,script,clients(name)")
+      .eq("id", postId)
+      .maybeSingle();
+    setPullingBySlot((prev) => ({ ...prev, [index]: false }));
+    if (error || !data) {
+      console.error("Falha ao puxar conteúdo do planejamento", error);
+      return;
+    }
+    const post = data as any;
+    updateSlot(
+      index,
+      {
+        client: (post.clients?.name as string) ?? option?.client_name ?? "",
+        title: (((post.planning_title as string) || (post.caption as string) || option?.planning_title || "") as string).trim(),
+        briefing: (post.briefing as string) ?? "",
+        copy: (post.script as string) ?? "",
+      },
+      true,
+    );
+  };
+
   const removeReference = async (index: number, path: string) => {
     if (textLocked) return;
     await supabase.storage.from(REFERENCES_BUCKET).remove([path]);
@@ -452,34 +480,25 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                       <Field label="Puxar do planejamento">
                         <select
                           value=""
-                          onChange={(e) => {
-                            const p = planningPosts.find((x) => x.id === e.target.value);
-                            if (!p) return;
-                            updateSlot(
-                              i,
-                              {
-                                client: p.client_name,
-                                title: p.planning_title,
-                                briefing: p.briefing,
-                                copy: p.script,
-                              },
-                              true,
-                            );
-                          }}
+                          disabled={pullingBySlot[i]}
+                          onChange={(e) => void pullFromPlanning(i, e.target.value)}
                           className="h-9 w-full px-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
                         >
-                          <option value="">Selecionar conteúdo do planejamento…</option>
+                          <option value="">
+                            {pullingBySlot[i]
+                              ? "Carregando conteúdo…"
+                              : "Selecionar conteúdo do planejamento…"}
+                          </option>
                           {planningPosts
                             .filter((p) => !slot.client || p.client_name === slot.client)
                             .map((p) => {
-                              const label = p.planning_title.replace(/\s+/g, " ").slice(0, 70);
                               const when = p.scheduled_at
                                 ? format(new Date(p.scheduled_at), "dd/MM")
                                 : "";
                               return (
                                 <option key={p.id} value={p.id}>
                                   {when ? `${when} · ` : ""}
-                                  {p.client_name} — {label || "(sem título)"}
+                                  {p.client_name} — {p.planning_title || "(sem título)"}
                                 </option>
                               );
                             })}
