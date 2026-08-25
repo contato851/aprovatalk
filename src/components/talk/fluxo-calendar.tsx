@@ -34,6 +34,13 @@ type ScriptOption = { id: string; title: string; client_name: string };
 
 const SLOTS_PER_DAY = 5;
 const fmtDate = (d: Date) => format(d, "yyyy-MM-dd");
+const DELIVERY_SLOT_COLUMNS = "id,slot_date,slot_index,client,title,folder_link,done,script_id";
+const SCRIPT_OPTION_COLUMNS = "id,title,clients(name)";
+
+const monthlySlotCache = new Map<string, any[]>();
+const monthlySlotPromises = new Map<string, Promise<any[]>>();
+let scriptsCache: ScriptOption[] | null = null;
+let scriptsPromise: Promise<ScriptOption[]> | null = null;
 
 function emptySlot(date: string, index: number): Slot {
   return {
@@ -63,18 +70,32 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
     if (readOnly || token) return;
     let cancelled = false;
     (async () => {
-      const { data, error } = await supabase
-        .from("scripts" as any)
-        .select("id,title,clients(name)")
-        .order("created_at", { ascending: false });
-      if (cancelled || error) return;
-      setScripts(
-        ((data ?? []) as any[]).map((r) => ({
-          id: r.id as string,
-          title: (r.title as string) || "Sem título",
-          client_name: (r.clients?.name as string) ?? "",
-        })),
-      );
+      try {
+        if (!scriptsPromise) {
+          scriptsPromise = scriptsCache
+            ? Promise.resolve(scriptsCache)
+            : (async () => {
+                const { data, error } = await supabase
+                  .from("scripts" as any)
+                  .select(SCRIPT_OPTION_COLUMNS)
+                  .order("created_at", { ascending: false })
+                  .limit(300);
+                  if (error) throw error;
+                  return ((data ?? []) as any[]).map((r) => ({
+                    id: r.id as string,
+                    title: (r.title as string) || "Sem título",
+                    client_name: (r.clients?.name as string) ?? "",
+                  }));
+              })();
+        }
+        const rows = await scriptsPromise;
+        scriptsPromise = null;
+        scriptsCache = rows;
+        if (!cancelled) setScripts(rows);
+      } catch (error) {
+        scriptsPromise = null;
+        if (!cancelled) console.error(error);
+      }
     })();
     return () => {
       cancelled = true;
@@ -102,22 +123,37 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
       setLoading(true);
       let rows: any[] | null = null;
       let error: any = null;
-      if (token) {
+      const cacheKey = `${token ?? "admin"}:${fmtDate(monthStart)}:${fmtDate(monthEnd)}`;
+      const cached = monthlySlotCache.get(cacheKey);
+      if (cached) {
+        rows = cached;
+      } else {
         try {
-          rows = await fetchByToken({
-            data: { token, monthStart: fmtDate(monthStart), monthEnd: fmtDate(monthEnd) },
-          });
+          let pending = monthlySlotPromises.get(cacheKey);
+          if (!pending) {
+            pending = (async () => {
+              if (token) {
+                return await fetchByToken({
+                  data: { token, monthStart: fmtDate(monthStart), monthEnd: fmtDate(monthEnd) },
+                });
+              }
+              const res = await supabase
+                .from("delivery_slots" as any)
+                .select(DELIVERY_SLOT_COLUMNS)
+                .gte("slot_date", fmtDate(monthStart))
+                .lte("slot_date", fmtDate(monthEnd));
+              if (res.error) throw res.error;
+              return (res.data ?? []) as any[];
+            })();
+            monthlySlotPromises.set(cacheKey, pending);
+          }
+          rows = await pending;
+          monthlySlotPromises.delete(cacheKey);
+          monthlySlotCache.set(cacheKey, rows);
         } catch (e) {
+          monthlySlotPromises.delete(cacheKey);
           error = e;
         }
-      } else {
-        const res = await supabase
-          .from("delivery_slots" as any)
-          .select("*")
-          .gte("slot_date", fmtDate(monthStart))
-          .lte("slot_date", fmtDate(monthEnd));
-        rows = res.data as any[] | null;
-        error = res.error;
       }
       if (cancelled) return;
       if (error) {
@@ -196,7 +232,7 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
         },
         { onConflict: "slot_date,slot_index" },
       )
-      .select()
+      .select("id")
       .single();
     if (error) {
       console.error("Save failed", error);
@@ -208,9 +244,10 @@ export function FluxoCalendar({ readOnly = false, token }: { readOnly?: boolean;
       const current = arr[slot.slot_index];
       arr[slot.slot_index] = current?.id ? current : { ...(current ?? slot), id: (data as any).id };
       next[slot.slot_date] = arr;
+      monthlySlotCache.delete(`admin:${fmtDate(monthStart)}:${fmtDate(monthEnd)}`);
       return next;
     });
-  }, []);
+  }, [monthEnd, monthStart]);
 
   const updateSlot = (index: number, patch: Partial<Slot>, immediate = false) => {
     if (readOnly) return;

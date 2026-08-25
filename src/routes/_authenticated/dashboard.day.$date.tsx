@@ -16,6 +16,13 @@ export const Route = createFileRoute("/_authenticated/dashboard/day/$date")({
         name: "description",
         content: `Cards de planejamento de cada cliente para ${params.date}.`,
       },
+      { property: "og:title", content: `Planejamento de ${params.date} — Talk` },
+      {
+        property: "og:description",
+        content: `Cards de planejamento de cada cliente para ${params.date}.`,
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
@@ -27,8 +34,8 @@ function DayPage() {
   const day = parseISO(date);
 
   const postsQ = useQuery({
-    queryKey: ["posts", {}],
-    queryFn: () => listPostsFn({ data: {} }),
+    queryKey: ["posts", { scheduledDate: date }],
+    queryFn: () => listPostsFn({ data: { includeMedia: false, scheduledDate: date } }),
   });
   const clientsQ = useQuery({
     queryKey: ["clients"],

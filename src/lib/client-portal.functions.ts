@@ -359,7 +359,7 @@ export const getDeliverySlotsByToken = createServerFn({ method: "GET" })
     await getClientByToken(supabaseAdmin, data.token);
     const { data: rows, error } = await supabaseAdmin
       .from("delivery_slots")
-      .select("*")
+      .select("id,slot_date,slot_index,client,title,folder_link,done,script_id")
       .gte("slot_date", data.monthStart)
       .lte("slot_date", data.monthEnd);
     if (error) throw error;
@@ -385,7 +385,7 @@ export const getDesignSlotsByToken = createServerFn({ method: "GET" })
     await getClientByToken(supabaseAdmin, data.token);
     const { data: rows, error } = await supabaseAdmin
       .from("design_slots")
-      .select("*")
+      .select("id,slot_date,slot_index,client,title,folder_link,final_link,briefing,copy,references_images,done")
       .gte("slot_date", data.monthStart)
       .lte("slot_date", data.monthEnd);
     if (error) throw error;

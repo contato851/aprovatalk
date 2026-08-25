@@ -147,28 +147,54 @@ export const listPosts = createServerFn({ method: "GET" })
     clientId?: string;
     type?: "static" | "carousel" | "video";
     status?: "planning" | "pending" | "approved" | "rejected" | "ready_for_review";
+    statuses?: ("planning" | "pending" | "approved" | "rejected" | "ready_for_review")[];
+    includeMedia?: boolean;
+    includeDetails?: boolean;
+    scheduledDate?: string;
   }) =>
     z
       .object({
         clientId: z.string().uuid().optional(),
         type: z.enum(["static", "carousel", "video"]).optional(),
         status: z.enum(["planning", "pending", "approved", "rejected", "ready_for_review"]).optional(),
+        statuses: z
+          .array(z.enum(["planning", "pending", "approved", "rejected", "ready_for_review"]))
+          .optional(),
+        includeMedia: z.boolean().optional(),
+        includeDetails: z.boolean().optional(),
+        scheduledDate: z.string().optional(),
       })
       .parse(d ?? {}),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
+    const includeMedia = data.includeMedia ?? true;
+    const includeDetails = data.includeDetails ?? true;
     let q = context.supabase
       .from("posts")
       .select(
-        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)",
+        includeMedia
+          ? "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)"
+          : includeDetails
+            ? "id, client_id, type, status, caption, planning_title, briefing, script, internal_status, scheduled_at, client_comment, midia_arquivada, cover_url, linked_design_slot_id, linked_delivery_slot_id, client:clients(id, name, instagram_handle, avatar_url), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)"
+            : "id, client_id, type, status, caption, planning_title, internal_status, scheduled_at, client_comment, midia_arquivada, linked_design_slot_id, linked_delivery_slot_id, client:clients(id, name, instagram_handle, avatar_url), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)",
       )
       .order("scheduled_at", { ascending: true });
     if (data.clientId) q = q.eq("client_id", data.clientId);
     if (data.type) q = q.eq("type", data.type);
     if (data.status) q = q.eq("status", data.status);
+    if (data.statuses?.length) q = q.in("status", data.statuses);
+    if (data.scheduledDate) {
+      const [year, month, day] = data.scheduledDate.split("-").map((n) => Number.parseInt(n, 10));
+      if (year && month && day) {
+        const start = new Date(year, month - 1, day);
+        const end = new Date(year, month - 1, day + 1);
+        q = q.gte("scheduled_at", start.toISOString()).lt("scheduled_at", end.toISOString());
+      }
+    }
     const { data: posts, error } = await q;
     if (error) throw error;
+    if (!includeMedia) return posts ?? [];
     return await Promise.all(
       (posts ?? []).map((p: any) => enrichPost(context.supabase, p)),
     );

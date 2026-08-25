@@ -5,19 +5,26 @@ import { cn } from "@/lib/utils";
 export type ClientOption = { id: string; name: string };
 
 let cache: ClientOption[] | null = null;
+let loadingPromise: Promise<void> | null = null;
 const listeners = new Set<(c: ClientOption[]) => void>();
 
 async function loadClients() {
+  if (loadingPromise) return loadingPromise;
+  loadingPromise = (async () => {
   const { data, error } = await supabase
     .from("clients")
     .select("id,name")
     .order("name", { ascending: true });
   if (error) {
     console.error("Falha ao carregar clientes", error);
+    loadingPromise = null;
     return;
   }
   cache = (data ?? []) as ClientOption[];
-  listeners.forEach((l) => l(cache!));
+  listeners.forEach((l) => l(cache ?? []));
+  loadingPromise = null;
+  })();
+  return loadingPromise;
 }
 
 export function useClientOptions() {

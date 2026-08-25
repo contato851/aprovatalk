@@ -28,6 +28,22 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/_authenticated/clients/$clientId/")({
   validateSearch: (s) => searchSchema.parse(s),
   component: ClientDetail,
+  head: () => ({
+    meta: [
+      { title: "Cliente — Aprova Talk" },
+      {
+        name: "description",
+        content: "Área administrativa do cliente com planejamento, produção e aprovação.",
+      },
+      { property: "og:title", content: "Cliente — Aprova Talk" },
+      {
+        property: "og:description",
+        content: "Área administrativa do cliente com planejamento, produção e aprovação.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function ClientDetail() {
@@ -59,19 +75,42 @@ function ClientDetail() {
     queryKey: ["client", clientId],
     queryFn: () => getClientFn({ data: { id: clientId } }),
   });
-  const postsQ = useQuery({
-    queryKey: ["posts", { clientId }],
-    queryFn: () => listPostsFn({ data: { clientId } }),
+  const postsSummaryQ = useQuery({
+    queryKey: ["posts", "summary", { clientId }],
+    queryFn: () =>
+      listPostsFn({ data: { clientId, includeMedia: false, includeDetails: false } }),
+  });
+  const planningPostsQ = useQuery({
+    queryKey: ["posts", "planning-details", { clientId }],
+    queryFn: () => listPostsFn({ data: { clientId, includeMedia: false } }),
+    enabled: tab === "planning",
+  });
+  const currentPostsQ = useQuery({
+    queryKey: ["posts", "current-media", { clientId, tab }],
+    queryFn: () =>
+      listPostsFn({
+        data: {
+          clientId,
+          includeMedia: true,
+          statuses:
+            tab === "review"
+              ? ["ready_for_review"]
+              : ["pending", "approved", "rejected"],
+        },
+      }),
+    enabled: tab !== "planning",
   });
 
-  const all = (postsQ.data ?? []) as any[];
-  const planning = all.filter((p) => p.status === "planning");
-  const review = all.filter((p) => p.status === "ready_for_review");
-  const approval = all.filter(
+  const summary = (postsSummaryQ.data ?? []) as any[];
+  const planningDetails = (planningPostsQ.data ?? []) as any[];
+  const planning = (tab === "planning" ? planningDetails : summary).filter(
+    (p) => p.status === "planning",
+  );
+  const review = summary.filter((p) => p.status === "ready_for_review");
+  const approval = summary.filter(
     (p) => p.status !== "planning" && p.status !== "ready_for_review",
   );
-  const baseList =
-    tab === "planning" ? planning : tab === "review" ? review : approval;
+  const baseList = tab === "planning" ? planning : ((currentPostsQ.data ?? []) as any[]);
   const sf = usePostSortFilter(baseList);
   const list = sf.result;
   const c = clientQ.data as any;
@@ -84,7 +123,9 @@ function ClientDetail() {
         return;
       }
       toast.success("Post liberado para aprovação.");
-      postsQ.refetch();
+      postsSummaryQ.refetch();
+      currentPostsQ.refetch();
+      planningPostsQ.refetch();
       navigate({
         to: "/clients/$clientId",
         params: { clientId },
@@ -95,7 +136,7 @@ function ClientDetail() {
     }
   }
 
-  if (!clientQ.data)
+  if (!clientQ.data || postsSummaryQ.isLoading)
     return <p className="text-sm text-muted-foreground">Carregando…</p>;
 
   return (
@@ -177,8 +218,11 @@ function ClientDetail() {
           </div>
           <PlanningCalendar
             clientId={clientId}
-            existingPosts={all}
-            onCreated={() => postsQ.refetch()}
+            existingPosts={planningDetails}
+            onCreated={() => {
+              postsSummaryQ.refetch();
+              planningPostsQ.refetch();
+            }}
           />
         </div>
       )}
@@ -235,7 +279,7 @@ function ClientDetail() {
 
 
 
-        {postsQ.isLoading ? (
+        {currentPostsQ.isLoading ? (
           <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>
         ) : list.length === 0 ? (
           <p className="mt-4 rounded-2xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">

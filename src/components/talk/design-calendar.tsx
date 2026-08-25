@@ -42,6 +42,15 @@ type PlanningOption = {
 const SLOTS_PER_DAY = 5;
 const REFERENCES_BUCKET = "design-references";
 const fmtDate = (d: Date) => format(d, "yyyy-MM-dd");
+const DESIGN_SLOT_COLUMNS =
+  "id,slot_date,slot_index,client,title,folder_link,final_link,briefing,copy,references_images,done";
+const PLANNING_OPTION_COLUMNS = "id,planning_title,caption,scheduled_at,status,clients(name)";
+const PLANNING_DETAIL_COLUMNS = "id,planning_title,caption,briefing,script,clients(name)";
+
+const monthlySlotCache = new Map<string, { rows: any[]; signedByPath?: Record<string, string> }>();
+const monthlySlotPromises = new Map<string, Promise<{ rows: any[]; signedByPath?: Record<string, string> }>>();
+let planningOptionsCache: PlanningOption[] | null = null;
+let planningOptionsPromise: Promise<PlanningOption[]> | null = null;
 
 function emptySlot(date: string, index: number): Slot {
   return {
@@ -70,34 +79,51 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [extraOpen, setExtraOpen] = useState<Record<number, boolean>>({});
   const [planningPosts, setPlanningPosts] = useState<PlanningOption[]>([]);
+  const [planningLoaded, setPlanningLoaded] = useState(false);
+  const [planningLoading, setPlanningLoading] = useState(false);
+  const [activePullSlot, setActivePullSlot] = useState<number | null>(null);
   const [pullingBySlot, setPullingBySlot] = useState<Record<number, boolean>>({});
 
-  useEffect(() => {
+  const ensurePlanningPosts = useCallback(async () => {
     if (!canPull) return;
-    let cancelled = false;
-    (async () => {
-      const { data, error } = await supabase
-        .from("posts")
-        .select("id,planning_title,caption,scheduled_at,status,clients(name)")
-        .in("status", ["planning", "ready_for_review", "pending"])
-        .order("scheduled_at", { ascending: true })
-        .limit(250);
-      if (cancelled || error || !data) return;
-      setPlanningPosts(
-        (data as any[]).map((r) => ({
-          id: r.id as string,
-          planning_title: ((r.planning_title as string) || (r.caption as string) || "")
-            .replace(/\s+/g, " ")
-            .trim()
-            .slice(0, 90),
-          client_name: (r.clients?.name as string) ?? "",
-          scheduled_at: (r.scheduled_at as string) ?? "",
-        })),
-      );
-    })();
-    return () => {
-      cancelled = true;
-    };
+    if (planningOptionsCache) {
+      setPlanningPosts(planningOptionsCache);
+      setPlanningLoaded(true);
+      return;
+    }
+    setPlanningLoading(true);
+    try {
+      if (!planningOptionsPromise) {
+        planningOptionsPromise = (async () => {
+          const { data, error } = await supabase
+            .from("posts")
+            .select(PLANNING_OPTION_COLUMNS)
+            .in("status", ["planning", "ready_for_review", "pending"])
+            .order("scheduled_at", { ascending: true })
+            .limit(250);
+            if (error) throw error;
+            return ((data ?? []) as any[]).map((r) => ({
+              id: r.id as string,
+              planning_title: ((r.planning_title as string) || (r.caption as string) || "")
+                .replace(/\s+/g, " ")
+                .trim()
+                .slice(0, 90),
+              client_name: (r.clients?.name as string) ?? "",
+              scheduled_at: (r.scheduled_at as string) ?? "",
+            }));
+        })();
+      }
+      const rows = await planningOptionsPromise;
+      planningOptionsPromise = null;
+      planningOptionsCache = rows;
+      setPlanningPosts(rows);
+      setPlanningLoaded(true);
+    } catch (error) {
+      planningOptionsPromise = null;
+      console.error("Falha ao carregar planejamento", error);
+    } finally {
+      setPlanningLoading(false);
+    }
   }, [canPull]);
 
 
@@ -125,24 +151,41 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
       let rows: any[] | null = null;
       let error: any = null;
       let preSigned: Record<string, string> | null = null;
-      if (token) {
+      const cacheKey = `${token ?? "admin"}:${fmtDate(monthStart)}:${fmtDate(monthEnd)}`;
+      const cached = monthlySlotCache.get(cacheKey);
+      if (cached) {
+        if (cached.signedByPath) setSignedUrls((prev) => ({ ...prev, ...cached.signedByPath }));
+        rows = cached.rows;
+      } else {
         try {
-          const res = await fetchByToken({
-            data: { token, monthStart: fmtDate(monthStart), monthEnd: fmtDate(monthEnd) },
-          });
-          rows = res.rows as any[];
-          preSigned = res.signedByPath;
+          let pending = monthlySlotPromises.get(cacheKey);
+          if (!pending) {
+            pending = (async () => {
+              if (token) {
+                const res = await fetchByToken({
+                  data: { token, monthStart: fmtDate(monthStart), monthEnd: fmtDate(monthEnd) },
+                });
+                return { rows: res.rows as any[], signedByPath: res.signedByPath };
+              }
+              const res = await supabase
+                .from("design_slots" as any)
+                .select(DESIGN_SLOT_COLUMNS)
+                .gte("slot_date", fmtDate(monthStart))
+                .lte("slot_date", fmtDate(monthEnd));
+              if (res.error) throw res.error;
+              return { rows: (res.data ?? []) as any[] };
+            })();
+            monthlySlotPromises.set(cacheKey, pending);
+          }
+          const resolved = await pending;
+          monthlySlotPromises.delete(cacheKey);
+          rows = resolved.rows;
+          preSigned = resolved.signedByPath ?? null;
+          monthlySlotCache.set(cacheKey, resolved);
         } catch (e) {
+          monthlySlotPromises.delete(cacheKey);
           error = e;
         }
-      } else {
-        const res = await supabase
-          .from("design_slots" as any)
-          .select("*")
-          .gte("slot_date", fmtDate(monthStart))
-          .lte("slot_date", fmtDate(monthEnd));
-        rows = res.data as any[] | null;
-        error = res.error;
       }
       if (cancelled) return;
       if (error) {
@@ -272,7 +315,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
         },
         { onConflict: "slot_date,slot_index" },
       )
-      .select()
+      .select("id")
       .single();
     if (error) {
       console.error("Save failed", error);
@@ -284,9 +327,10 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
       const current = arr[slot.slot_index];
       arr[slot.slot_index] = current?.id ? current : { ...(current ?? slot), id: (data as any).id };
       next[slot.slot_date] = arr;
+      monthlySlotCache.delete(`admin:${fmtDate(monthStart)}:${fmtDate(monthEnd)}`);
       return next;
     });
-  }, []);
+  }, [monthEnd, monthStart]);
 
   const updateSlot = (index: number, patch: Partial<Slot>, immediate = false) => {
     if (readOnly) return;
@@ -343,7 +387,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
     setPullingBySlot((prev) => ({ ...prev, [index]: true }));
     const { data, error } = await supabase
       .from("posts")
-      .select("id,planning_title,caption,briefing,script,clients(name)")
+      .select(PLANNING_DETAIL_COLUMNS)
       .eq("id", postId)
       .maybeSingle();
     setPullingBySlot((prev) => ({ ...prev, [index]: false }));
@@ -362,6 +406,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
       },
       true,
     );
+    planningOptionsCache = planningOptionsCache?.filter((p) => p.id !== postId) ?? null;
   };
 
   const removeReference = async (index: number, path: string) => {
@@ -481,15 +526,25 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                         <select
                           value=""
                           disabled={pullingBySlot[i]}
+                          onFocus={() => {
+                            setActivePullSlot(i);
+                            void ensurePlanningPosts();
+                          }}
+                          onMouseDown={() => {
+                            setActivePullSlot(i);
+                            void ensurePlanningPosts();
+                          }}
                           onChange={(e) => void pullFromPlanning(i, e.target.value)}
                           className="h-9 w-full px-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
                         >
                           <option value="">
-                            {pullingBySlot[i]
+                            {pullingBySlot[i] || planningLoading
                               ? "Carregando conteúdo…"
-                              : "Selecionar conteúdo do planejamento…"}
+                              : planningLoaded
+                                ? "Selecionar conteúdo do planejamento…"
+                                : "Clique para carregar planejamento…"}
                           </option>
-                          {planningPosts
+                          {activePullSlot === i && planningPosts
                             .filter((p) => !slot.client || p.client_name === slot.client)
                             .map((p) => {
                               const when = p.scheduled_at

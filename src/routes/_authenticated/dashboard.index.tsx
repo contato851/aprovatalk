@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listPosts, listClients } from "@/lib/admin.functions";
 import { useMemo, useState } from "react";
@@ -11,6 +11,22 @@ import { PostMediaPlaceholder } from "@/components/talk/post-media-placeholder";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DashboardPage,
+  head: () => ({
+    meta: [
+      { title: "Calendário de posts — Aprova Talk" },
+      {
+        name: "description",
+        content: "Calendário administrativo de posts programados por cliente e data.",
+      },
+      { property: "og:title", content: "Calendário de posts — Aprova Talk" },
+      {
+        property: "og:description",
+        content: "Calendário administrativo de posts programados por cliente e data.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 type Post = Awaited<ReturnType<typeof listPosts>>[number];
@@ -33,7 +49,8 @@ function DashboardPage() {
 
   const postsQ = useQuery({
     queryKey: ["posts", filters],
-    queryFn: () => listPostsFn({ data: filters }),
+    queryFn: () =>
+      listPostsFn({ data: { ...filters, includeMedia: false, includeDetails: false } }),
   });
 
   const posts = postsQ.data ?? [];
@@ -239,7 +256,13 @@ function PostCard({ post }: { post: Post }) {
       className="group overflow-hidden rounded-xl border border-border bg-card transition hover:shadow-lg"
     >
       <div className="relative aspect-[3/4] bg-muted">
-        {thumb ? (
+        {post.midia_arquivada ? (
+          <div className="flex h-full w-full items-center justify-center bg-muted/60">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              Mídia arquivada
+            </p>
+          </div>
+        ) : thumb ? (
           <img src={thumb} alt="" className="h-full w-full object-cover" />
         ) : (
           <PostMediaPlaceholder type={post.type} status={post.status} />
