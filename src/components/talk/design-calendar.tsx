@@ -469,11 +469,21 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
                           className="h-9 w-full px-2 rounded-lg border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
                         >
                           <option value="">Selecionar conteúdo do planejamento…</option>
-                          {planningPosts.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.client_name} — {p.planning_title || "(sem título)"}
-                            </option>
-                          ))}
+                          {planningPosts
+                            .filter((p) => !slot.client || p.client_name === slot.client)
+                            .map((p) => {
+                              const label = p.planning_title.replace(/\s+/g, " ").slice(0, 70);
+                              const when = p.scheduled_at
+                                ? format(new Date(p.scheduled_at), "dd/MM")
+                                : "";
+                              return (
+                                <option key={p.id} value={p.id}>
+                                  {when ? `${when} · ` : ""}
+                                  {p.client_name} — {label || "(sem título)"}
+                                </option>
+                              );
+                            })}
+
                         </select>
                       </Field>
                     )}
