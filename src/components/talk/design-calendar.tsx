@@ -79,16 +79,18 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
     (async () => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id,planning_title,briefing,script,scheduled_at,clients(name)")
+        .select("id,planning_title,caption,briefing,script,scheduled_at,status,clients(name)")
+        .in("status", ["planning", "ready_for_review", "pending"])
         .order("scheduled_at", { ascending: true });
       if (cancelled || error || !data) return;
       setPlanningPosts(
         (data as any[]).map((r) => ({
           id: r.id as string,
-          planning_title: (r.planning_title as string) ?? "",
+          planning_title: ((r.planning_title as string) || (r.caption as string) || "").trim(),
           briefing: (r.briefing as string) ?? "",
           script: (r.script as string) ?? "",
           client_name: (r.clients?.name as string) ?? "",
+          scheduled_at: (r.scheduled_at as string) ?? "",
         })),
       );
     })();
@@ -96,6 +98,7 @@ export function DesignCalendar({ readOnly = false, token }: { readOnly?: boolean
       cancelled = true;
     };
   }, [readOnly]);
+
 
   const dayRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
