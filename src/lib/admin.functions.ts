@@ -9,7 +9,7 @@ export const listClients = createServerFn({ method: "GET" })
   .inputValidator((d: { includeAvatars?: boolean } | undefined) =>
     z.object({ includeAvatars: z.boolean().optional() }).parse(d ?? {}),
   )
-  .handler(async ({ context }) => {
+  .handler(async ({ context, data: input }) => {
     await assertAdmin(context);
     const { data, error } = await context.supabase
       .from("clients")
@@ -17,7 +17,7 @@ export const listClients = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     if (error) throw error;
     const clients = data ?? [];
-    if (!data.includeAvatars) return clients;
+    if (!input.includeAvatars) return clients;
     // sign avatar urls
     const enriched = await Promise.all(
       clients.map(async (c: any) => ({
