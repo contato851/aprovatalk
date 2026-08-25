@@ -13,7 +13,7 @@ function ClientsPage() {
   const listFn = useServerFn(listClients);
   const q = useQuery({
     queryKey: ["clients"],
-    queryFn: () => listFn({ data: undefined as any }),
+    queryFn: () => listFn({ data: { includeAvatars: true } }),
   });
 
   return (

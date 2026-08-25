@@ -1,46 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-
-const BUCKETS = {
-  avatars: "avatars",
-  media: "post-media",
-  covers: "post-covers",
-  frames: "adjustment-frames",
-} as const;
-
-
-const SIGNED_URL_TTL = 60 * 60 * 24 * 30; // 30 dias
-
-async function assertAdmin(context: {
-  supabase: any;
-  userId: string;
-}) {
-  const { data, error } = await context.supabase.rpc("has_role", {
-    _user_id: context.userId,
-    _role: "admin",
-  });
-  if (error || !data) throw new Error("Forbidden");
-}
+import { assertAdmin, enrichPost, signAvatarUrl } from "./admin.server";
 
 /** Lista todos os clientes (admin) */
 export const listClients = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((d: { includeAvatars?: boolean } | undefined) =>
+    z.object({ includeAvatars: z.boolean().optional() }).parse(d ?? {}),
+  )
+  .handler(async ({ context, data: input }) => {
     await assertAdmin(context);
     const { data, error } = await context.supabase
       .from("clients")
-      .select("*")
+      .select("id, name, instagram_handle, avatar_url, access_token, status, created_at")
       .order("created_at", { ascending: false });
     if (error) throw error;
     const clients = data ?? [];
+    if (!input.includeAvatars) return clients;
     // sign avatar urls
     const enriched = await Promise.all(
       clients.map(async (c: any) => ({
         ...c,
-        avatar_signed_url: c.avatar_url
-          ? await signStoragePath(context.supabase, BUCKETS.avatars, c.avatar_url)
-          : null,
+        avatar_signed_url: await signAvatarUrl(context.supabase, c.avatar_url),
       })),
     );
     return enriched;
@@ -60,9 +42,7 @@ export const getClient = createServerFn({ method: "GET" })
     if (error) throw error;
     return {
       ...client,
-      avatar_signed_url: client.avatar_url
-        ? await signStoragePath(context.supabase, BUCKETS.avatars, client.avatar_url)
-        : null,
+      avatar_signed_url: await signAvatarUrl(context.supabase, client.avatar_url),
     };
   });
 
@@ -147,28 +127,54 @@ export const listPosts = createServerFn({ method: "GET" })
     clientId?: string;
     type?: "static" | "carousel" | "video";
     status?: "planning" | "pending" | "approved" | "rejected" | "ready_for_review";
+    statuses?: ("planning" | "pending" | "approved" | "rejected" | "ready_for_review")[];
+    includeMedia?: boolean;
+    includeDetails?: boolean;
+    scheduledDate?: string;
   }) =>
     z
       .object({
         clientId: z.string().uuid().optional(),
         type: z.enum(["static", "carousel", "video"]).optional(),
         status: z.enum(["planning", "pending", "approved", "rejected", "ready_for_review"]).optional(),
+        statuses: z
+          .array(z.enum(["planning", "pending", "approved", "rejected", "ready_for_review"]))
+          .optional(),
+        includeMedia: z.boolean().optional(),
+        includeDetails: z.boolean().optional(),
+        scheduledDate: z.string().optional(),
       })
       .parse(d ?? {}),
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
+    const includeMedia = data.includeMedia ?? true;
+    const includeDetails = data.includeDetails ?? true;
     let q = context.supabase
       .from("posts")
       .select(
-        "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)",
+        includeMedia
+          ? "*, client:clients(id, name, instagram_handle, avatar_url), media:post_media(id, url, position, kind), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)"
+          : includeDetails
+            ? "id, client_id, type, status, caption, planning_title, briefing, script, internal_status, scheduled_at, client_comment, midia_arquivada, cover_url, linked_design_slot_id, linked_delivery_slot_id, client:clients(id, name, instagram_handle, avatar_url), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)"
+            : "id, client_id, type, status, caption, planning_title, internal_status, scheduled_at, client_comment, midia_arquivada, linked_design_slot_id, linked_delivery_slot_id, client:clients(id, name, instagram_handle, avatar_url), linked_design_slot:design_slots!linked_design_slot_id(id, slot_date, slot_index, title, done), linked_delivery_slot:delivery_slots!linked_delivery_slot_id(id, slot_date, slot_index, title, done)",
       )
       .order("scheduled_at", { ascending: true });
     if (data.clientId) q = q.eq("client_id", data.clientId);
     if (data.type) q = q.eq("type", data.type);
     if (data.status) q = q.eq("status", data.status);
+    if (data.statuses?.length) q = q.in("status", data.statuses);
+    if (data.scheduledDate) {
+      const [year, month, day] = data.scheduledDate.split("-").map((n) => Number.parseInt(n, 10));
+      if (year && month && day) {
+        const start = new Date(year, month - 1, day);
+        const end = new Date(year, month - 1, day + 1);
+        q = q.gte("scheduled_at", start.toISOString()).lt("scheduled_at", end.toISOString());
+      }
+    }
     const { data: posts, error } = await q;
     if (error) throw error;
+    if (!includeMedia) return posts ?? [];
     return await Promise.all(
       (posts ?? []).map((p: any) => enrichPost(context.supabase, p)),
     );
@@ -231,11 +237,6 @@ export const listAvailableSlots = createServerFn({ method: "GET" })
   });
 
 /** Cria post + mídia */
-const mediaItem = z.object({
-  path: z.string(),
-  kind: z.enum(["image", "video"]),
-});
-
 export const createPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
@@ -251,7 +252,14 @@ export const createPost = createServerFn({ method: "POST" })
 
         scheduled_at: z.string(),
         cover_path: z.string().nullable().optional(),
-        media: z.array(mediaItem).default([]),
+        media: z
+          .array(
+            z.object({
+              path: z.string(),
+              kind: z.enum(["image", "video"]),
+            }),
+          )
+          .default([]),
         status: z.enum(["planning", "pending"]).default("pending"),
         linked_design_slot_id: z.string().uuid().nullable().optional(),
         linked_delivery_slot_id: z.string().uuid().nullable().optional(),
@@ -375,7 +383,14 @@ export const updatePost = createServerFn({ method: "POST" })
         caption: z.string().default(""),
         scheduled_at: z.string(),
         cover_path: z.string().nullable().optional(),
-        media: z.array(mediaItem).default([]),
+        media: z
+          .array(
+            z.object({
+              path: z.string(),
+              kind: z.enum(["image", "video"]),
+            }),
+          )
+          .default([]),
         linked_design_slot_id: z.string().uuid().nullable().optional(),
         linked_delivery_slot_id: z.string().uuid().nullable().optional(),
       })
@@ -526,55 +541,4 @@ export const createUploadUrl = createServerFn({ method: "POST" })
     return { path, token: signed.token, signedUrl: signed.signedUrl };
   });
 
-// --- Helpers ---
-
-async function signStoragePath(
-  supabase: any,
-  bucket: string,
-  path: string,
-): Promise<string | null> {
-  if (!path) return null;
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .createSignedUrl(path, SIGNED_URL_TTL);
-  if (error) return null;
-  return data?.signedUrl ?? null;
-}
-
-async function enrichPost(supabase: any, post: any) {
-  const sorted = [...(post.media ?? [])].sort(
-    (a: any, b: any) => a.position - b.position,
-  );
-  const media = await Promise.all(
-    sorted.map(async (m: any) => ({
-      ...m,
-      signed_url: await signStoragePath(supabase, BUCKETS.media, m.url),
-    })),
-  );
-  const cover_signed_url = post.cover_url
-    ? await signStoragePath(supabase, BUCKETS.covers, post.cover_url)
-    : null;
-  const client_avatar_signed_url = post.client?.avatar_url
-    ? await signStoragePath(supabase, BUCKETS.avatars, post.client.avatar_url)
-    : null;
-  const points = await Promise.all(
-    [...(post.adjustment_points ?? [])]
-      .sort((a: any, b: any) => a.time_seconds - b.time_seconds)
-      .map(async (pt: any) => ({
-        ...pt,
-        frame_signed_url: pt.frame_url
-          ? await signStoragePath(supabase, BUCKETS.frames, pt.frame_url)
-          : null,
-      })),
-  );
-  return {
-    ...post,
-    media,
-    cover_signed_url,
-    adjustment_points: points,
-    client: post.client
-      ? { ...post.client, avatar_signed_url: client_avatar_signed_url }
-      : null,
-  };
-}
 
