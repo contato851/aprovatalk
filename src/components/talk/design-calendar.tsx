@@ -38,6 +38,7 @@ type PlanningOption = {
   briefing: string;
   script: string;
   client_name: string;
+  scheduled_at: string;
 };
 
 const SLOTS_PER_DAY = 5;
